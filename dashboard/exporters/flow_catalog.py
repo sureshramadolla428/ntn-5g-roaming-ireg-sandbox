@@ -30,14 +30,16 @@ class FlowStep:
 # VPLMN #1565C0 / HPLMN #2E7D32 — documented in Grafana dashboard description.
 FLOW_STEPS: tuple[FlowStep, ...] = (
     # Flow 1 — Authentication
+    # RAN steps: ran-net.pcap is primary (host -i any N2 filter). multi-point.pcap is
+    # fallback when live-first-attach wrote only multi-point (014834) or bridge miss.
     FlowStep(
         "auth-1", "auth", "Registration Request (SUCI)", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x41",
     ),
     FlowStep(
         "auth-2", "auth", "Initial UE Message", "gNB", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="ngap",
     ),
     FlowStep(
@@ -57,12 +59,12 @@ FLOW_STEPS: tuple[FlowStep, ...] = (
     ),
     FlowStep(
         "auth-6", "auth", "5G-AKA challenge", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs",
     ),
     FlowStep(
         "auth-7", "auth", "Authentication Response", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x57",
     ),
     FlowStep(
@@ -72,7 +74,7 @@ FLOW_STEPS: tuple[FlowStep, ...] = (
     ),
     FlowStep(
         "auth-9", "auth", "Security Mode Command/Complete", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs || ngap",
     ),
     # Flow 2 — Registration
@@ -110,13 +112,13 @@ FLOW_STEPS: tuple[FlowStep, ...] = (
     ),
     FlowStep(
         "reg-7", "reg", "Registration Accept", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x42",
     ),
     # Flow 3 — PDU (1/2)
     FlowStep(
         "pdu-1", "pdu", "PDU Session Establishment Request", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.sm.message_type == 0xc1",
     ),
     FlowStep(
@@ -167,7 +169,7 @@ FLOW_STEPS: tuple[FlowStep, ...] = (
     ),
     FlowStep(
         "pdu-11", "pdu", "PDU Session Establishment Accept", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.sm.message_type == 0xc2",
     ),
     FlowStep(

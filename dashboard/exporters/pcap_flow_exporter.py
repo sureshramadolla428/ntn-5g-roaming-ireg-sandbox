@@ -730,6 +730,17 @@ def _run_tshark_fields(pcap: Path, display_filter: str) -> list[dict[str, str]]:
 
 
 def _run_tshark_count(pcap: Path, display_filter: str) -> tuple[bool, float | None]:
+    """Return whether any frame matches display_filter, plus first match epoch.
+
+    Do **not** pass tshark ``-c 1`` when reading capture files: for ``-r``,
+    ``-c`` limits packets read from the file *before* filtering, so an early
+    non-matching frame (e.g. ICMP ping on ran-net) makes NGAP/NAS steps miss
+    even when later frames match (MEASURED on host: ``tshark -Y ngap | wc -l``).
+
+    Implementation: run ``tshark -r … -Y FILTER -T fields -e frame.time_epoch``
+    with **no** ``-c``, take the first stdout epoch line, then kill the process
+    (cap via timeout). Never truncate the file read before the filter can match.
+    """
     cmd = [
         "tshark",
         "-r",
@@ -740,18 +751,62 @@ def _run_tshark_count(pcap: Path, display_filter: str) -> tuple[bool, float | No
         "fields",
         "-e",
         "frame.time_epoch",
-        "-c",
-        "1",
     ]
+    # Guard: never reintroduce packet-count truncation on file reads.
+    assert "-c" not in cmd, "tshark -c must not be used with -r (truncates before -Y)"
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=60)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except OSError:
+        return False, None
+    first_line = ""
+    try:
+        assert proc.stdout is not None
+        # First matching frame.time_epoch only — do not buffer the full dump.
+        # Timeout: readline can block on a hung tshark; join a reader thread.
+        box: list[str] = []
+
+        def _reader() -> None:
+            try:
+                box.append(proc.stdout.readline())  # type: ignore[union-attr]
+            except OSError:
+                box.append("")
+
+        reader = threading.Thread(target=_reader, daemon=True)
+        reader.start()
+        reader.join(timeout=120.0)
+        if reader.is_alive():
+            proc.kill()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+            return False, None
+        if box and box[0]:
+            first_line = box[0].strip()
+        if proc.poll() is None:
+            proc.kill()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+        else:
+            proc.wait(timeout=5)
     except (OSError, subprocess.TimeoutExpired):
+        if proc.poll() is None:
+            try:
+                proc.kill()
+            except OSError:
+                pass
         return False, None
-    ts_line = proc.stdout.strip().splitlines()
-    if not ts_line or not ts_line[0].strip():
+    if not first_line:
         return False, None
     try:
-        return True, float(ts_line[0].strip())
+        return True, float(first_line)
     except ValueError:
         return True, None
 

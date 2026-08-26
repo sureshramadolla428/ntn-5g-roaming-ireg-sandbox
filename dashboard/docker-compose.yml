@@ -24,10 +24,16 @@ services:
         ipv4_address: 10.10.7.11
   flow-exporter:
     build: ./exporters
+    # Must match Dockerfile WORKDIR /app/exporters + CMD python pcap_flow_exporter.py
+    # (bind-mount overlays baked COPY so live flow_catalog.py / exporter load after rsync).
+    working_dir: /app/exporters
     volumes:
       - ../pcaps:/pcaps:ro
       - ../harness/reports:/harness/reports:ro
       - ./grafana/public-assets:/app/grafana/public-assets:ro
+      # Live-mount at WORKDIR — NOT /app alone (would miss ./exporters/*.py used by CMD).
+      # Without this overlay, image COPY stays stale after host rsync (RAN=0 / old -c 1).
+      - ./exporters:/app/exporters:ro
     environment:
       PCAP_ROOT: /pcaps
       # Empty → exporter resolve_latest_capture(); set via refresh-flow-dashboard.sh recreate.

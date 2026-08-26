@@ -1,5 +1,45 @@
 # Changelog
 
+## fix-tshark-c1-file-truncate - RAN=0 on 032417 despite ngap=13
+
+- **Root cause:** `_run_tshark_count` used `tshark -r ... -Y FILTER -c 1`. For
+  file reads, `-c` limits packets **read from the file**, not first match.
+  `032417` ran-net starts with ICMP (verify ping) then NGAP -- host
+  `tshark -Y ngap | wc -l` = 13 but exporter RAN steps all miss; HTTP2/PFCP
+  early matches -- observed~14 with `domains.ran=0`.
+- Fix: no `-c` on file reads; stream first `frame.time_epoch` line then kill.
+- `capture-ireg-tc.sh --stop`: `chmod -R a+rX` via `run_priv` (root-owned pcaps).
+- Compose: explicit `working_dir: /app/exporters` + bind-mount at WORKDIR.
+- Unit test: argv must not contain `-c`. Evidence: `docs/evidence/TC-05-20260826T032417-LBO-MEASURED.md`.
+
+## fix-ran0-031413-sync-hardening ? RAN=0 persists after host-capture patch
+
+- **Verdict on `20260826T031413`:** NOT GO. Same HEALTH pattern as `030211`
+  (observed=14, auth=1.0, pdu-3, all ran missing). Capture dir **not** on Windows;
+  local scripts already have `-i any` + multi-point catalog fallback ? VM almost
+  certainly missing rsync and/or exporter recreate.
+- `capture-ireg-tc.sh`: **hard-abort** if `ran-net.pcap` tcpdump not listening
+  (was `|| true` ? empty RAN while visited PFCP still scored).
+- `live-first-attach.sh`: detect dead sudo-password tcpdump logs; always write
+  `ran-net.pcap` + `multi-point.pcap` via `-i any` when attach-local capture runs.
+- `dashboard/docker-compose.yml`: bind-mount `./exporters` so `flow_catalog`
+  multi-point RAN fallback applies after rsync + recreate (no image rebuild).
+- Runbooks: forbid `sg docker`-only capture start; require `sudo -E`.
+
+## fix-ran-net-host-capture ? RAN=0 on 025256/030211
+
+- **Root cause:** UERANSIM on host (`10.10.4.10`); bridge-only `tcpdump` missed
+  host?AMF NGAP while visited/ipx (container?container) still worked. Exporter
+  only read `ran-net.pcap` for `domain=ran`. Non-root capture ? empty files
+  (`sudo: a password is required`, see `014710`).
+- `capture-ireg-tc.sh`: `ran-net.pcap` via `-i any` N2 hosts; always-on
+  `multi-point` with N4; verify/listening checks; prefer `sudo -E`.
+- `run-tc-05-golden.sh`: sudo **before** capture (not after).
+- `live-first-attach.sh`: reuse active TC-05 capture dir; skip duplicate tcpdump;
+  N2+N4 hosts on multi-point.
+- `flow_catalog.py`: RAN steps also accept `multi-point.pcap`.
+- Checklist: RAN=0 notes; honesty ? no full MEASURED PASS until `domains.ran > 0`.
+
 ## tc05-pfcp-capture-checklist ? N4 evidence for next LBO run
 
 - Added `docs/runbooks/tc-05-full-capture-checklist.md` (ordered steps; N4 on
