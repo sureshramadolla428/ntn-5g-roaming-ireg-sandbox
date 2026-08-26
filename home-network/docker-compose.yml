@@ -1,0 +1,201 @@
+# ---------------------------------------------------------------------------
+# PROVENANCE: adapted from URANSIM_Open5gs/private-5g + docker_open5gs
+# Adaptation date: 2026-08-24 | Lab: ntn-roaming-lab
+# Home PLMN 001-01 — image entrypoint requires /mnt/<nf>/<nf>_init.sh
+# ---------------------------------------------------------------------------
+
+x-open5gs: &open5gs
+  image: ghcr.io/herlesupreeth/docker_open5gs:master
+  env_file: [.env]
+  restart: unless-stopped
+
+services:
+  home-mongo:
+    image: mongo:6.0
+    container_name: home-mongo
+    command: --bind_ip 0.0.0.0
+    restart: unless-stopped
+    volumes: [home_mongo_data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.20
+
+  home-nrf:
+    <<: *open5gs
+    container_name: home-nrf
+    environment: {COMPONENT_NAME: nrf}
+    volumes:
+      - ./configs/nrf:/mnt/nrf
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.10
+        aliases: [nrf.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.20
+        aliases: [nrf.home.ipx.lab]
+
+  home-scp:
+    <<: *open5gs
+    container_name: home-scp
+    depends_on: [home-nrf]
+    environment: {COMPONENT_NAME: scp}
+    volumes:
+      - ./configs/scp:/mnt/scp
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.21
+        aliases: [scp.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.23
+        aliases: [scp.home.ipx.lab]
+
+  home-ausf:
+    <<: *open5gs
+    container_name: home-ausf
+    depends_on: [home-nrf, home-scp]
+    environment: {COMPONENT_NAME: ausf}
+    volumes:
+      - ./configs/ausf:/mnt/ausf
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.11
+        aliases: [ausf.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.21
+        aliases: [ausf.home.ipx.lab]
+
+  home-udr:
+    <<: *open5gs
+    container_name: home-udr
+    depends_on:
+      home-mongo: {condition: service_healthy}
+      home-nrf: {condition: service_started}
+    environment:
+      COMPONENT_NAME: udr
+      DB_URI: mongodb://10.10.1.20/open5gs
+    volumes:
+      - ./configs/udr:/mnt/udr
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.13
+        aliases: [udr.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.24
+        aliases: [udr.home.ipx.lab]
+
+  home-udm:
+    <<: *open5gs
+    container_name: home-udm
+    depends_on: [home-ausf, home-udr]
+    environment: {COMPONENT_NAME: udm}
+    volumes:
+      - ./configs/udm:/mnt/udm
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.12
+        aliases: [udm.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.22
+        aliases: [udm.home.ipx.lab]
+
+  home-pcf:
+    <<: *open5gs
+    container_name: home-pcf
+    depends_on:
+      home-mongo: {condition: service_healthy}
+      home-nrf: {condition: service_started}
+    environment:
+      COMPONENT_NAME: pcf
+      DB_URI: mongodb://10.10.1.20/open5gs
+    volumes:
+      - ./configs/pcf:/mnt/pcf
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.15
+        aliases: [pcf.home.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.25
+        aliases: [pcf.home.ipx.lab]
+
+  home-hss:
+    <<: *open5gs
+    container_name: home-hss
+    depends_on:
+      home-mongo: {condition: service_healthy}
+    environment:
+      COMPONENT_NAME: hss
+      DB_URI: mongodb://10.10.1.20/open5gs
+    volumes:
+      - ./configs/hss:/mnt/hss
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.14
+        aliases: [hss.home.lab]
+
+  home-smf:
+    <<: *open5gs
+    container_name: home-smf
+    depends_on: [home-nrf, home-scp]
+    environment:
+      COMPONENT_NAME: smf
+      DEPLOY_MODE: "5G"
+    volumes:
+      - ./configs/smf:/mnt/smf
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.23
+        aliases: [smf.home.lab]
+
+  home-upf:
+    <<: *open5gs
+    container_name: home-upf
+    depends_on: [home-smf]
+    environment: {COMPONENT_NAME: upf}
+    volumes:
+      - ./configs/upf:/mnt/upf
+      - ./logs:/open5gs/install/var/log/open5gs
+    cap_add: [NET_ADMIN]
+    privileged: true
+    sysctls: {net.ipv4.ip_forward: "1"}
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.24
+        aliases: [upf.home.lab]
+
+  home-webui:
+    <<: *open5gs
+    container_name: home-webui
+    depends_on:
+      home-mongo: {condition: service_healthy}
+    environment:
+      COMPONENT_NAME: webui
+      DB_URI: mongodb://10.10.1.20/open5gs
+    volumes: [./configs/webui:/mnt/webui]
+    ports: ["9999:9999"]
+    networks:
+      home-net:
+        ipv4_address: 10.10.1.22
+
+volumes:
+  home_mongo_data:
+
+networks:
+  home-net:
+    name: ntn-home-net
+    external: true
+  ipx-net:
+    name: ntn-ipx-net
+    external: true

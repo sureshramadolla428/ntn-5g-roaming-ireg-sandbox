@@ -1,0 +1,137 @@
+# ---------------------------------------------------------------------------
+# PROVENANCE: adapted from URANSIM_Open5gs/private-5g + docker_open5gs
+# Adaptation date: 2026-08-24 | Lab: ntn-roaming-lab
+# Visited PLMN 999-70 — image entrypoint requires /mnt/<nf>/<nf>_init.sh
+# ---------------------------------------------------------------------------
+
+x-open5gs: &open5gs
+  image: ghcr.io/herlesupreeth/docker_open5gs:master
+  env_file: [.env]
+  restart: unless-stopped
+
+services:
+  visited-mongo:
+    image: mongo:6.0
+    container_name: visited-mongo
+    command: --bind_ip 0.0.0.0
+    restart: unless-stopped
+    volumes: [visited_mongo_data:/data/db]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.20
+
+  visited-nrf:
+    <<: *open5gs
+    container_name: visited-nrf
+    environment: {COMPONENT_NAME: nrf}
+    volumes:
+      - ./configs/nrf:/mnt/nrf
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.10
+        aliases: [nrf.visited.lab]
+      ipx-net:
+        ipv4_address: 10.10.3.30
+
+  visited-scp:
+    <<: *open5gs
+    container_name: visited-scp
+    depends_on: [visited-nrf]
+    environment: {COMPONENT_NAME: scp}
+    volumes:
+      - ./configs/scp:/mnt/scp
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.21
+      ipx-net:
+        ipv4_address: 10.10.3.32
+
+  visited-amf:
+    <<: *open5gs
+    container_name: visited-amf
+    depends_on: [visited-nrf, visited-scp]
+    environment: {COMPONENT_NAME: amf}
+    volumes:
+      - ./configs/amf:/mnt/amf
+      - ./configs/variants:/mnt/variants:ro
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.11
+        aliases: [amf.visited.lab]
+      ran-net:
+        ipv4_address: 10.10.4.11
+      ipx-net:
+        ipv4_address: 10.10.3.31
+
+  visited-smf:
+    <<: *open5gs
+    container_name: visited-smf
+    depends_on: [visited-amf]
+    environment:
+      COMPONENT_NAME: smf
+      DEPLOY_MODE: "5G"
+      # TC-05 golden default = LBO 10.46; TC-15 sets ROAMING_MODE=HR for 10.45
+      ROAMING_MODE: "${ROAMING_MODE:-LBO}"
+    volumes:
+      - ./configs/smf:/mnt/smf
+      - ./configs/variants:/mnt/variants:ro
+      - ./logs:/open5gs/install/var/log/open5gs
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.12
+        aliases: [smf.visited.lab]
+
+  visited-upf:
+    <<: *open5gs
+    container_name: visited-upf
+    depends_on: [visited-smf]
+    environment:
+      COMPONENT_NAME: upf
+      # Must match visited-smf pool or UE IP and ogstun GW diverge (ping fail)
+      ROAMING_MODE: "${ROAMING_MODE:-LBO}"
+    volumes:
+      - ./configs/upf:/mnt/upf
+      - ./logs:/open5gs/install/var/log/open5gs
+    cap_add: [NET_ADMIN]
+    privileged: true
+    sysctls: {net.ipv4.ip_forward: "1"}
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.13
+        aliases: [upf.visited.lab]
+
+  visited-webui:
+    <<: *open5gs
+    container_name: visited-webui
+    depends_on:
+      visited-mongo: {condition: service_healthy}
+    environment:
+      COMPONENT_NAME: webui
+      DB_URI: mongodb://10.10.2.20/open5gs
+    volumes: [./configs/webui:/mnt/webui]
+    ports: ["9998:9999"]
+    networks:
+      visited-net:
+        ipv4_address: 10.10.2.22
+
+volumes:
+  visited_mongo_data:
+
+networks:
+  visited-net:
+    name: ntn-visited-net
+    external: true
+  ran-net:
+    name: ntn-ran-net
+    external: true
+  ipx-net:
+    name: ntn-ipx-net
+    external: true

@@ -1,0 +1,21 @@
+---
+description: Agent execution rules (MASTER_PROMPT Section 7)
+alwaysApply: true
+---
+
+# Execution rules (Section 7)
+
+1. Work **phase by phase in order**. End of phase: verify, runbook notes, `CHANGELOG.md`, commit+tag, `make verify-reference`, then continue (no per-phase wait).
+2. Before Phase 0: read reference (never modify); summarise versions/configs/reuse; pause only for path/OAI canonical answers the user alone holds.
+3. Phase 0 first. New components must be in `network-plan.yaml` and pass `make check-network`. Never bind core ports to `0.0.0.0`.
+4. **Never modify existing projects.** Copy from reference into the lab; provenance header required. Prefer adapting copies over inventing configs.
+5. If a tool version lacks a feature: report and propose upgrade vs netem — do not emulate and label as the feature.
+6. RAM pressure → staged startup; do not silently cut scope.
+7. Every Python module: docstrings, type hints, unit tests where meaningful.
+8. Keep `CHANGELOG.md` and `versions.lock` current.
+9. Spec constants need citation comments:
+   `# <value> per <spec> <clause/table>, <release>. Verified <date> against <source>.`
+   Else `# UNVERIFIED` + `docs/verification-register.md`.
+10. If a lab measurement contradicts an appendix, **trust the measurement** and flag the appendix.
+
+Windows scaffolding: do not claim live attach/MEASURED pcaps. Mark live paths `DEFERRED-TO-UBUNTU`.

@@ -1,0 +1,26 @@
+---
+description: Non-negotiable accuracy rules (MASTER_PROMPT Section 2)
+alwaysApply: true
+---
+
+# Accuracy rules (Section 2)
+
+These override "be helpful" and "finish the phase."
+
+1. **Never invent a spec value.** Every 3GPP/GSMA/RFC value in config, formula, or assertion must cite document + clause/table + release. If unknown: `UNVERIFIED — needs primary source check` and a row in `docs/verification-register.md`.
+2. **Never invent an API, flag, AVP, or config key.** Grep installed/reference source first. If absent, say so and propose alternatives — do not code against remembered APIs.
+3. **Never invent a repository URL, paper, or document number.** Verify URLs resolve; record commits in `versions.lock`.
+4. **Distinguish MEASURED vs REFERENCE.** Numbers in reports must be labelled. Never present reference values as lab measurements.
+5. **Flag release drift.** If installed OAI/Open5GS predates a required Rel-17+ feature, stop and report — do not silently emulate and label it real.
+6. **Ask instead of assuming** missing context (paths, versions, component presence) before building that phase.
+7. **Label every mock** as:
+   `# MOCK: <component>. Production equivalent: <real> per <spec+clause>. Divergences: <list>.`
+
+```python
+# ❌ BAD
+assert code == 5004  # "I think this is roaming not allowed"
+
+# ✅ GOOD
+# UNVERIFIED — TS 29.272 experimental code; see docs/verification-register.md V1
+EXPERIMENTAL_ROAMING_NOT_ALLOWED = DiameterCode(5004, "...", False, "TS 29.272 UNVERIFIED")
+```

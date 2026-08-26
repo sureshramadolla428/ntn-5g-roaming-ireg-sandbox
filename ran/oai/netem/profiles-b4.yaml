@@ -1,0 +1,34 @@
+# Corrected B4 netem profiles (REFERENCE — not MEASURED)
+# Convention: per-direction delay = RTT_target/2 applied on ONE interface direction.
+# Verify with ping before each run; record MEASURED RTT alongside results.
+# Source: master prompt Appendix B3/B4 (confirm TS 38.821 — V9).
+
+convention: per_direction_on_single_iface
+profiles:
+  terrestrial:
+    delay_ms: 0
+    jitter_ms: 0
+    loss_percent: 0
+    target_rtt_ms: 0
+  leo-600:
+    delay_ms: 13
+    jitter_ms: 4
+    jitter_distribution: normal
+    loss_percent: 0
+    target_rtt_ms: 26
+  leo-1200:
+    delay_ms: 21
+    jitter_ms: 5
+    jitter_distribution: normal
+    loss_percent: 0
+    target_rtt_ms: 42
+  geo:
+    delay_ms: 271
+    jitter_ms: 10
+    jitter_distribution: normal
+    loss_percent: 0
+    target_rtt_ms: 541
+notes:
+  - "v1 250ms GEO and 10ms LEO-600 were WRONG relative to B3 — do not use"
+  - "normal jitter may reorder; document qdisc choice"
+  - "netem does not model Doppler/fading"

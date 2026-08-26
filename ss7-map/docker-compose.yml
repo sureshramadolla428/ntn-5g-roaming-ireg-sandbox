@@ -1,0 +1,29 @@
+# Osmocom SS7/MAP stubs — Phase 4
+# Images are placeholders; exact Osmocom tags pinned on Ubuntu in versions.lock
+services:
+  osmo-stp:
+    image: osmocom/osmo-stp:latest
+    container_name: lab-osmo-stp
+    volumes: [./configs/osmo-stp.cfg:/data/osmo-stp.cfg:ro]
+    networks:
+      ss7-net:
+        ipv4_address: 10.10.5.10
+  osmo-hlr:
+    image: osmocom/osmo-hlr:latest
+    container_name: lab-osmo-hlr
+    volumes: [./configs/osmo-hlr.cfg:/data/osmo-hlr.cfg:ro]
+    networks:
+      ss7-net:
+        ipv4_address: 10.10.5.11
+  osmo-msc:
+    image: osmocom/osmo-msc:latest
+    container_name: lab-osmo-msc
+    volumes: [./configs/osmo-msc.cfg:/data/osmo-msc.cfg:ro]
+    networks:
+      ss7-net:
+        ipv4_address: 10.10.5.12
+
+networks:
+  ss7-net:
+    name: ntn-ss7-net
+    external: true

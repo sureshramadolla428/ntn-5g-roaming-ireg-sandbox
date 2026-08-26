@@ -1,0 +1,17 @@
+# Compatibility filename for docker_open5gs entrypoint variants.
+# Canonical content matches nrf.yaml in this directory.
+logger:
+  file:
+    path: /var/log/open5gs/nrf.log
+
+nrf:
+  serving:
+    - plmn_id:
+        mcc: "001"
+        mnc: "01"
+  sbi:
+    server:
+      - address: 10.10.1.10
+        port: 7777
+      - address: 10.10.3.20
+        port: 7777

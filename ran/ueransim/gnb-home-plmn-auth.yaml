@@ -1,0 +1,39 @@
+# SOURCE: C:\Users\sures\OneDrive\Desktop\MVNOs_and_MNOs\URRANSIM_Open5gs\private-5g\ueransim\config\open5gs\open5gs-gnb.yaml
+# COPIED: 2026-08-24 — lab ran-net IPs; PLMN set to HOME 001/01 for B1 auth proof. Original untouched.
+#
+# TRACK B1 — temporary same-PLMN gNB for home-IMSI SUCI + camp/register.
+# Broadcasts HPLMN 001/01 so UERANSIM UE (mcc/mnc 001/01) sees SUITABLE (not ACCEPTABLE).
+# Still points at visited AMF 10.10.4.11; visited AMF must list HOME in plmn_support/tai
+# (see visited-network/configs/amf/amf.yaml). This is single-PLMN attach for auth path proof —
+# NOT true VPLMN 999/70 roaming camping (UERANSIM cannot dual-encode HPLMN SUCI + VPLMN camp).
+#
+# Production gNB for visited identity remains gnb-visited.yaml (999/70) — blocked for home SUCI
+# until UERANSIM gains equivalent/preferred PLMN (wiki has no such keys).
+
+mcc: '001'
+mnc: '01'
+nci: '0x000000010'
+idLength: 32
+tac: 1
+linkIp: 10.10.4.10
+ngapIp: 10.10.4.10
+gtpIp: 10.10.4.10
+amfConfigs:
+  - address: 10.10.4.11
+    port: 38412
+slices:
+  - sst: 1
+ignoreStreamIds: true
+cells:
+  - nrpci: 1
+    sectorId: 0
+    band: 78
+    dlArfcn: 621000
+    ssbArfcn: 620640
+    scs: 30
+    cpl: 2
+    ssbPeriodicity: 20
+    hncOffset: 0
+    n2HoApiIp: 10.10.4.10
+    n2HoApiPort: 9000
+cellAccessType: nr

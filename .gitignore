@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Lab runtime artifacts
+logs/
+*.pcap
+*.pcapng
+reports/
+harness/reports/
+dashboard/.streamlit/secrets.toml
+*.log
+
+# Docker / local
+mongodb_data/
+.open5gs_logs/
+
+# Operational scripts — public tree keeps stub only (private companion repo)
+scripts/**
+!scripts/README.md
+
+# Agent / internal handoff prompts (not part of showcase)
+MASTER_PROMPT*.md
+UBUNTU_HANDOFF.md
+UBUNTU_RESUME_PROMPT.md
+
+# Scratch / junk under evidence
+docs/evidence/_write_test.txt
+
+# Nested accidental tree copies
+pcaps/TC-05/home/

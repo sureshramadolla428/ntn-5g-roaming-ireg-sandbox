@@ -1,0 +1,48 @@
+# NTN Roaming Lab — extracted Grafana color palette
+# Generated: 2026-08-24 (Python fallback — bash unavailable on Windows host)
+# Source: dashboard/grafana/dashboards/*.json + gen_dashboards.py COLORS
+
+## Canonical COLORS (gen_dashboards.py)
+COLORS = {
+    "home": "#2E7D32",
+    "visited": "#1565C0",
+    "ipx": "#EF6C00",
+    "ran": "#6A1B9A",
+    "auth": "#FF9800",
+    "reg": "#2E7D32",
+    "pdu": "#1565C0",
+    "observed": "#43A047",
+    "partial": "#FBC02D",
+    "missing": "#E53935",
+}
+
+PHASE_ROW_COLOR = {"auth": "#E65100", "reg": "#2E7D32", "pdu": "#1565C0"}
+
+## Hex codes found in dashboard JSON (sorted unique)
+#1565C0
+#2E7D32
+#43A047
+#6A1B9A
+#E53935
+#EF6C00
+#FBC02D
+#FF9800
+
+## fixedColor / threshold steps (from JSON)
+"fixedColor": "#1565C0"
+"fixedColor": "#2E7D32"
+"fixedColor": "#43A047"
+"fixedColor": "#6A1B9A"
+"fixedColor": "#E53935"
+"fixedColor": "#EF6C00"
+"fixedColor": "#FBC02D"
+"fixedColor": "#FF9800"
+
+## Semantic mapping (lab convention — do not invent new domain colors)
+# HOME/HPLMN  -> #2E7D32
+# VISITED/VPLMN -> #1565C0
+# IPX         -> #EF6C00
+# RAN         -> #6A1B9A
+# observed    -> #43A047
+# partial_expected -> #FBC02D
+# missing     -> #E53935

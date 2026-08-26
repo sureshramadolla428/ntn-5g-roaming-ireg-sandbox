@@ -1,0 +1,56 @@
+# IPX domain — freeDiameter DRA + SBI proxy stand-in + fault API
+# Open5GS SEPP absent (V14) — SBI path uses ipx-sbi-proxy; do NOT call it SEPP.
+# See docs/n32-divergence-table.md
+services:
+  ipx-dra:
+    build:
+      context: ./freediameter
+      dockerfile: Dockerfile
+    image: ntn-lab-freediameter-dra:local
+    container_name: ipx-dra
+    restart: unless-stopped
+    # Templates are COPY'd into the image. Do not mount this tree over /etc/freeDiameter.
+    networks:
+      ipx-net:
+        ipv4_address: 10.10.3.10
+        aliases: [dra.ipx.lab]
+      home-net:
+        ipv4_address: 10.10.1.30
+      visited-net:
+        ipv4_address: 10.10.2.30
+
+  ipx-sbi-proxy:
+    build: ./sbi-proxy
+    container_name: ipx-sbi-proxy
+    restart: unless-stopped
+    # MOCK: HTTP SBI reverse-proxy stand-in. Production: SEPP/N32 (TS 29.573).
+    networks:
+      ipx-net:
+        ipv4_address: 10.10.3.11
+        aliases: [sbi-proxy.ipx.lab]
+      home-net: {}
+      visited-net: {}
+
+  ipx-fault-api:
+    build: ./fault-api
+    container_name: ipx-fault-api
+    restart: unless-stopped
+    ports: ["8080:8080"]
+    volumes: [./fault-api:/app]
+    working_dir: /app
+    command: ["python", "-m", "uvicorn", "app:app", "--host", "10.10.3.12", "--port", "8080"]
+    networks:
+      ipx-net:
+        ipv4_address: 10.10.3.12
+        aliases: [fault.ipx.lab]
+
+networks:
+  ipx-net:
+    name: ntn-ipx-net
+    external: true
+  home-net:
+    name: ntn-home-net
+    external: true
+  visited-net:
+    name: ntn-visited-net
+    external: true

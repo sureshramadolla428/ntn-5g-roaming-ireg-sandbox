@@ -1,0 +1,13 @@
+# Realm-keyed routes (lab) — freeDiameter rt_default
+# Destination-Realm from IMSI → home realm per TS 23.003 (Appendix C2)
+#
+# Home:    epc.mnc001.mcc001.3gppnetwork.org -> HSS 10.10.1.14 (via home leg 10.10.1.30)
+# Visited: epc.mnc070.mcc999.3gppnetwork.org -> visited MME/HSS peer when present
+#
+# Negative expectation: unknown realm → DIAMETER_REALM_NOT_SERVED (3003, RFC 6733)
+# UNVERIFIED: exact rt_default syntax may differ by freeDiameter package version — validate on Ubuntu.
+
+# Example rt_default syntax (common pattern; confirm against installed freeDiameter docs):
+# realm="epc.mnc001.mcc001.3gppnetwork.org" action=relay
+# realm="epc.mnc070.mcc999.3gppnetwork.org" action=relay
+# realm="*" action=error  # or fail / discard per package

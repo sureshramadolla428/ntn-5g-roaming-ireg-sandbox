@@ -1,0 +1,19 @@
+# freeDiameter DRA/DEA template (lab)
+# MOCK: simplified Diameter routing agent. Production equivalent: IPX DRA/DEA.
+# per Diameter base RFC 6733 + 3GPP S6a application (TS 29.272 — verify AVPs on Ubuntu)
+# Divergences: no commercial IPX SLA; realm table is lab-static; TLS optional / off by default.
+# SEPP: absent in Open5GS reference (V14) — SBI interconnect uses ipx-sbi-proxy stand-in, NOT called SEPP.
+
+Identity = "dra.ipx.lab";
+Realm = "ipx.lab";
+ListenOn = "10.10.3.10";
+Port = 3868;
+SecPort = 3869;
+NoRelay = 0;
+
+LoadExtension = "dbg_msg_dumps.fdx" : "0x8888";
+LoadExtension = "rt_default.fdx" : "/etc/freeDiameter/rt.conf";
+
+# ConnectPeer lines filled by entrypoint from network-plan on Ubuntu if needed:
+# ConnectPeer = "hss.home.lab" { ConnectTo = "10.10.1.14"; Port = 3868; No_TLS; };
+# ConnectPeer = "mme.visited.lab" { ConnectTo = "10.10.2.14"; Port = 3868; No_TLS; };

@@ -1,0 +1,15 @@
+name: flakiness-job
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+jobs:
+  flake:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt pytest-repeat
+      - run: pytest -m "tier1 and not live" --count=5 --tb=line
+        # D4.4 flake rate published from junit — DEFERRED full publisher

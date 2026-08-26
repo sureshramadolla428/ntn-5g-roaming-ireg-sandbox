@@ -1,0 +1,5 @@
+requirement_id,source_document,clause_table,requirement_summary,test_case_ids,automated,mandatory_or_optional,evidence_type,verification_status,source_accessible
+R-TOPO-001,lab,network-plan,home visited direct blocked,LAB-IREG-000,y,mandatory,negative-probe,lab,y
+R-REG-001,TS 23.502,UNVERIFIED,roaming registration,LAB-IREG-001,y,mandatory,pcap+logs,UNVERIFIED,n
+R-IPX-001,lab,fault-api,IPX drop fault attribution,LAB-IREG-009,y,mandatory,multi-point,lab,y
+R-NIDD-001,TS 29.122,UNVERIFIED,NIDD size boundary,LAB-IREG-020,y,optional,http,UNVERIFIED,n

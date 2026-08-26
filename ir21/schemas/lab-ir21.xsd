@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LAB-AUTHORED XSD — NOT a GSMA IR.21/RAEX schema (explicit). -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="LabRoamingProfile">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="tadig" type="xs:string"/>
+        <xs:element name="mcc" type="xs:string"/>
+        <xs:element name="mnc" type="xs:string"/>
+        <xs:element name="realm" type="xs:string"/>
+        <xs:element name="amfNgApIp" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

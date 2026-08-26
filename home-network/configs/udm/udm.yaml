@@ -1,0 +1,32 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/udm.log
+
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+
+global:
+  max:
+    ue: MAX_NUM_UE
+
+udm:
+  hnet:
+    - id: 1
+      scheme: 1
+      key: /open5gs/install/etc/open5gs/hnet/curve25519-1.key
+    - id: 2
+      scheme: 2
+      key: /open5gs/install/etc/open5gs/hnet/secp256r1-2.key
+  sbi:
+    server:
+      - address: UDM_IPX
+        port: 7777
+      - address: UDM_IP
+        port: 7777
+    client:
+      # Open5GS MEASURED: only ONE nrf client. Same visited NRF as home AUSF/UDR.
+      nrf:
+        - uri: http://VISITED_NRF_IPX:7777

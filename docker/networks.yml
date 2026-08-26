@@ -1,0 +1,56 @@
+# Subnet documentation for lab bridges (Phase 0).
+# Do not merge this file with domain compose: those files use external: true.
+# Create networks with: bash scripts/create_docker_networks.sh
+name: ntn-roaming-lab
+
+networks:
+  home-net:
+    name: ntn-home-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.1.0/24
+          gateway: 10.10.1.1
+    # internal reachability to visited blocked via iptables helper (see scripts/enforce-ipx-routing.sh)
+  visited-net:
+    name: ntn-visited-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.2.0/24
+          gateway: 10.10.2.1
+  ipx-net:
+    name: ntn-ipx-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.3.0/24
+          gateway: 10.10.3.1
+  ran-net:
+    name: ntn-ran-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.4.0/24
+          gateway: 10.10.4.1
+  ss7-net:
+    name: ntn-ss7-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.5.0/24
+          gateway: 10.10.5.1
+  mocks-net:
+    name: ntn-mocks-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.6.0/24
+          gateway: 10.10.6.1
+  monitoring-net:
+    name: ntn-monitoring-net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.7.0/24
+          gateway: 10.10.7.1

@@ -1,0 +1,23 @@
+# versions.lock — detected + planned pins
+# Generated 2026-08-21 on Windows build host
+
+[planned]
+openairinterface5g.commit = 38dc378
+openairinterface5g.tag = 2026.w16
+open5gs.image = ghcr.io/herlesupreeth/docker_open5gs:master
+mongo = mongo:6.0
+prometheus = prom/prometheus:v2.51.0
+grafana = grafana/grafana:10.4.0
+python = 3.11
+ubuntu = 22.04
+
+[detected-windows]
+# Fill after: python --version; docker --version (if any)
+oai_source_in_workspace = false
+open5gs_reference_plmn = 999-70
+ntn_config_source = 5g-ntn-emulation-lab - Cursor/oai-config
+
+[deferred-ubuntu]
+freediameter = apt-pin-on-install
+osmocom_stp = image-digest-on-pull
+ueransim = build-or-package-on-host

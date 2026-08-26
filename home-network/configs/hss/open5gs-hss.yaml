@@ -1,0 +1,14 @@
+# Compatibility filename for docker_open5gs entrypoint variants.
+logger:
+  file:
+    path: /var/log/open5gs/hss.log
+
+hss:
+  freeDiameter: /etc/freeDiameter/hss.conf
+  sbi:
+    server:
+      - address: 10.10.1.14
+        port: 7777
+    client:
+      scp:
+        - uri: http://10.10.1.21:7777

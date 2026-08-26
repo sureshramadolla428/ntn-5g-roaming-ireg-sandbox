@@ -1,0 +1,5 @@
+tadig: LABVS  # lab placeholder (V19)
+mcc: "999"
+mnc: "70"
+realm: epc.mnc070.mcc999.3gppnetwork.org
+amfNgApIp: 10.10.2.11

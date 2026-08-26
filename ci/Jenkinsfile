@@ -1,0 +1,14 @@
+pipeline {
+  agent any
+  stages {
+    stage('Check network') {
+      steps { sh 'python3 scripts/check_network.py' }
+    }
+    stage('Unit tests') {
+      steps { sh 'python3 -m pytest -q harness/metrics harness/trace-validation ir21 mocks -m "not live"' }
+    }
+    stage('SCTP note') {
+      steps { echo 'V17: do not expect SCTP AMF tests on generic hosted agents' }
+    }
+  }
+}

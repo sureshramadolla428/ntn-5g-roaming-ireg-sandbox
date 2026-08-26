@@ -1,0 +1,17 @@
+# Compatibility filename for docker_open5gs entrypoint variants.
+logger:
+  file:
+    path: /var/log/open5gs/pcf.log
+
+pcf:
+  sbi:
+    server:
+      - address: 10.10.3.25
+        port: 7777
+      - address: 10.10.1.15
+        port: 7777
+    client:
+      nrf:
+        - uri: http://10.10.3.30:7777
+      scp:
+        - uri: http://10.10.3.32:7777

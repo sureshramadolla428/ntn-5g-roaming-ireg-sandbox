@@ -1,0 +1,54 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "title": "5G Roaming Flow (live path)",
+      "url": "/d/ntn-5g-roaming-flow",
+      "type": "dashboard"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "text",
+      "title": "DEFERRED \u2014 no LTE MME in lab",
+      "id": 1,
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## 01 \u2014 4G Roaming Flow \u2014 **DEFERRED**\n\nThis lab has **no visited MME or eNB**. TC-01/TC-02 (LTE attach/S6a) are **blocked**.\n\nDo **not** interpret empty or stub panels as passing 4G IREG coverage.\n\n**When LTE is added**, panels should cite:\n- Attach success: TS 24.301 \u00a75.5.1\n- S6a AIR/AIA, ULR/ULA: TS 29.272 \u00a77.2\u20137.3\n- PDN connectivity: TS 24.301 \u00a76.5.1\n- SGd SMS: TS 29.338 / TS 23.040\n\nSee `dashboard/kpi-traceability.md` and `docs/plans/grafana-master-prompt-review.md`.\n\nUse **[02 \u2014 5G Roaming Flow](/d/ntn-5g-roaming-flow)** for the active B1 same-PLMN path."
+      }
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "4g",
+    "deferred",
+    "ntn-lab"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "01 \u2014 4G Roaming Flow (DEFERRED \u2014 no LTE MME)",
+  "uid": "ntn-4g-roaming-flow",
+  "version": 1,
+  "description": "DEFERRED stub only. No fake node graphs or live KPI claims. 4G blocked until visited MME/eNB exist. KPI traceability in dashboard/kpi-traceability.md."
+}

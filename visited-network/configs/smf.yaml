@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# PROVENANCE: adapted from URANSIM_Open5gs/private-5g
+# Adaptation date: 2026-08-21 | Lab: ntn-roaming-lab
+# ---------------------------------------------------------------------------
+
+# Default SMF — see variants/ for HR vs LBO
+logger:
+  file:
+    path: /var/log/open5gs/smf.log
+smf:
+  sbi:
+    server:
+      - address: 10.10.2.12
+        port: 7777
+    client:
+      scp:
+        - uri: http://10.10.2.21:7777
+  pfcp:
+    server:
+      - address: 10.10.2.12
+    client:
+      upf:
+        - address: 10.10.2.13
+  dns: [8.8.8.8, 8.8.4.4]
+  subnet:
+    - addr: 10.46.0.0/16
+      dnn: internet
+  metrics:
+    server:
+      - address: 10.10.2.12
+        port: 9090

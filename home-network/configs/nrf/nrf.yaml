@@ -1,0 +1,25 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/nrf.log
+
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+
+global:
+  max:
+    ue: MAX_NUM_UE
+
+nrf:
+  serving:
+    - plmn_id:
+        mcc: "MCC"
+        mnc: "MNC"
+  sbi:
+    server:
+      - address: NRF_IP
+        port: 7777
+      - address: NRF_IPX
+        port: 7777

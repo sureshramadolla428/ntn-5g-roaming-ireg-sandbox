@@ -1,0 +1,5 @@
+# Local Breakout (LBO) variant — visited UPF 10.46.0.0/16
+smf:
+  subnet:
+    - addr: 10.46.0.0/16
+      dnn: internet

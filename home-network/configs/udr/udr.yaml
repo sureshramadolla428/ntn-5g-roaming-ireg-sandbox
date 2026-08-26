@@ -1,0 +1,27 @@
+db_uri: mongodb://MONGO_IP/open5gs
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/udr.log
+
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+
+global:
+  max:
+    ue: MAX_NUM_UE
+
+udr:
+  sbi:
+    server:
+      # IPX so UDR can reach visited NRF (home-net alone cannot reach 10.10.3.30).
+      - address: UDR_IPX
+        port: 7777
+      - address: UDR_IP
+        port: 7777
+    client:
+      # Open5GS MEASURED: only ONE nrf client. Register to visited NRF for UDM discovery.
+      nrf:
+        - uri: http://VISITED_NRF_IPX:7777

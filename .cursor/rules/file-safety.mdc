@@ -1,0 +1,44 @@
+---
+description: Workspace layout, file safety, autonomy (MASTER_PROMPT Section 3A)
+alwaysApply: true
+---
+
+# File safety & autonomy (Section 3A)
+
+## Workspace
+
+- Build only under `ntn-roaming-lab/` (this repo).
+- Reference trees (`URRANSIM_Open5gs`, `3GPP_RAG_SA_LAB`, `5g-ntn-emulation-lab*`, `~/reference/`) are **READ-ONLY**.
+
+## Forbidden on reference trees
+
+- Edit, patch, lint, delete, move, rename
+- Git write (`commit`, `checkout`, `reset`, `clean`, `stash`, `pull`, `rebase`)
+- Build/install that writes artifacts into reference
+- `docker compose up` from a compose file under reference
+- Create new files under reference
+
+## Allowed on reference trees
+
+- Read files; copy out into the lab and modify copies
+- Read-only git (`log`, `show`, `diff`, `status`, `describe`)
+- Record commits in `versions.lock`
+
+## Provenance header on copied files
+
+```
+# SOURCE: <reference-path> @ <commit>
+# COPIED: <date> — modified for <reason>. Original untouched.
+```
+
+## Autonomy
+
+Inside this lab: create/edit/delete, venv installs, Docker, commits — without asking per action.
+Continue phases after changelog/commit/tag; batch questions at phase end.
+
+## Autonomy does NOT allow
+
+1. Writes outside this lab (especially reference)
+2. Inventing unverifiable spec values (use UNVERIFIED + keep going)
+3. Guessing user-only context (ask once, batched)
+4. Destructive ops (`docker system prune`, force-push, `rm -rf` beyond build dirs you created) without asking; **never** delete reference/quarantine

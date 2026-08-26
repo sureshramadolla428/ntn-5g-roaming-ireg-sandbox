@@ -1,0 +1,72 @@
+# SOURCE: C:\Users\sures\OneDrive\Desktop\MVNOs_and_MNOs\URRANSIM_Open5gs\private-5g\ueransim\config\open5gs\open5gs-ue.yaml
+# COPIED: 2026-08-24 — schema copied; original untouched.
+# Upstream wiki (aligungr/UERANSIM Configuration): mcc/mnc = HPLMN; "must be consistent with SUPI".
+# Upstream generateSuci() uses config->hplmn for SUCI PLMN + MSIN = IMSI digits after HPLMN length
+# (src/ue/nas/mm/identity.cpp) — NOT the serving/gNB PLMN. No equivalent/preferred PLMN YAML keys exist.
+
+# LAB TRACK B1 (default): HPLMN 001/01 consistent with home SUPI → SUCI
+#   suci-0-001-01-0000-0-0-0000000001
+# Camp/register only on a same-PLMN gNB (see gnb-home-plmn-auth.yaml). True VPLMN 999/70 camping
+# with home SUCI needs UERANSIM patches (absent) — see docs/runbooks/live-first-attach.md.
+# Do NOT set mcc/mnc to 999/70 "for camping": that encodes SUCI as 999/70 + MSIN → Mongo 404.
+
+supi: 'imsi-001010000000001'
+mcc: '001'
+mnc: '01'
+protectionScheme: 0
+homeNetworkPublicKey: '5a8d38864820197c3394b92613b20b91633cbd897119273bf8e4a6f4eec0a650'
+homeNetworkPublicKeyId: 1
+routingIndicator: '0000'
+
+key: '465B5CE8B199B49FAA5F0A2EE238A6BC'
+# Field name is always "op"; value is OPc when opType is OPC (Mongo subscribers.security.opc)
+op: 'E8ED289DEBA952E4283B54E88E61823C'
+opType: 'OPC'
+amf: '8000'
+imei: '356938035643803'
+imeiSv: '4370816125816151'
+
+tunNetmask: '255.255.255.0'
+useNamespace: false
+nsNamePrefix: 'ueransim'
+
+gnbSearchList:
+  - 10.10.4.10
+
+uacAic:
+  mps: false
+  mcs: false
+
+uacAcc:
+  normalClass: 0
+  class11: false
+  class12: false
+  class13: false
+  class14: false
+  class15: false
+
+sessions:
+  - type: 'IPv4'
+    apn: 'internet'
+    slice:
+      sst: 1
+
+configured-nssai:
+  - sst: 1
+
+default-nssai:
+  - sst: 1
+
+integrity:
+  IA1: true
+  IA2: true
+  IA3: true
+
+ciphering:
+  EA1: true
+  EA2: true
+  EA3: true
+
+integrityMaxRate:
+  uplink: 'full'
+  downlink: 'full'

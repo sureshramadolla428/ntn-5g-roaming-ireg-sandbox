@@ -1,0 +1,16 @@
+# Compatibility filename for docker_open5gs entrypoint variants.
+logger:
+  file:
+    path: /var/log/open5gs/udm.log
+
+udm:
+  sbi:
+    server:
+      - address: 10.10.3.22
+        port: 7777
+      - address: 10.10.1.12
+        port: 7777
+    client:
+      # Open5GS MEASURED: only ONE nrf client — visited NRF via IPX.
+      nrf:
+        - uri: http://10.10.3.30:7777

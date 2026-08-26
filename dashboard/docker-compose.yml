@@ -1,0 +1,65 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    volumes: [./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro]
+    ports: ["${PROMETHEUS_HOST_PORT:-9090}:9090"]
+    # service_started (not service_healthy): long tshark parses must not block `compose up -d`.
+    depends_on:
+      flow-exporter:
+        condition: service_started
+    networks:
+      monitoring-net:
+        ipv4_address: 10.10.7.10
+  grafana:
+    image: grafana/grafana:10.4.0
+    ports: ["${GRAFANA_HOST_PORT:-3000}:3000"]
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      monitoring-net:
+        ipv4_address: 10.10.7.11
+  flow-exporter:
+    build: ./exporters
+    volumes:
+      - ../pcaps:/pcaps:ro
+      - ../harness/reports:/harness/reports:ro
+      - ./grafana/public-assets:/app/grafana/public-assets:ro
+    environment:
+      PCAP_ROOT: /pcaps
+      # Empty → exporter resolve_latest_capture(); set via refresh-flow-dashboard.sh recreate.
+      PCAP_DIR: ${PCAP_DIR:-}
+      TC_ID: ${TC_ID:-TC-05}
+      FLOW_EXPORTER_HOST: 0.0.0.0
+      FLOW_EXPORTER_PORT: "8010"
+      HARNESS_REPORTS: /harness/reports
+      PUBLIC_ASSETS: /app/grafana/public-assets
+      CALLFLOW_HTML: /app/grafana/public-assets/roaming-callflow.html
+    ports: ["8010:8010"]
+    restart: unless-stopped
+    # /health is liveness-only (returns while background pcap parse runs).
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=2)\""]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    networks:
+      monitoring-net:
+        ipv4_address: 10.10.7.14
+  streamlit:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes: [./:/app, ../harness/reports:/app/../harness/reports]
+    command: bash -lc "pip install streamlit && streamlit run app.py --server.port 8501 --server.address 0.0.0.0"
+    ports: ["8501:8501"]
+    networks:
+      monitoring-net:
+        ipv4_address: 10.10.7.12
+networks:
+  monitoring-net:
+    external: true
+    name: ntn-monitoring-net

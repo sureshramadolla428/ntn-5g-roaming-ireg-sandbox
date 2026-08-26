@@ -1,0 +1,31 @@
+# SOURCE: C:\Users\sures\OneDrive\Desktop\MVNOs_and_MNOs\URRANSIM_Open5gs\private-5g\ueransim\config\open5gs\open5gs-gnb.yaml
+# COPIED: 2026-08-24 — modified for lab ran-net IPs. Original untouched.
+# Alias of gnb-visited.yaml (999/70). LAB-IREG-001 B1 uses gnb-home-plmn-auth.yaml instead.
+
+mcc: '999'
+mnc: '70'
+nci: '0x000000010'
+idLength: 32
+tac: 1
+linkIp: 10.10.4.10
+ngapIp: 10.10.4.10
+gtpIp: 10.10.4.10
+amfConfigs:
+  - address: 10.10.4.11
+    port: 38412
+slices:
+  - sst: 1
+ignoreStreamIds: true
+cells:
+  - nrpci: 1
+    sectorId: 0
+    band: 78
+    dlArfcn: 621000
+    ssbArfcn: 620640
+    scs: 30
+    cpl: 2
+    ssbPeriodicity: 20
+    hncOffset: 0
+    n2HoApiIp: 10.10.4.10
+    n2HoApiPort: 9000
+cellAccessType: nr

@@ -1,0 +1,27 @@
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/ausf.log
+
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+
+global:
+  max:
+    ue: MAX_NUM_UE
+
+ausf:
+  sbi:
+    server:
+      # IPX first so NRF NFProfile prefers a visited-reachable address (home↔visited DROP).
+      - address: AUSF_IPX
+        port: 7777
+      - address: AUSF_IP
+        port: 7777
+    client:
+      # Open5GS MEASURED: only ONE nrf client. Register to visited NRF via IPX
+      # so visited AMF can discover this AUSF (no SEPP; dual-home stand-in).
+      nrf:
+        - uri: http://VISITED_NRF_IPX:7777

@@ -1,0 +1,9 @@
+# Home-Routed (HR) variant — UE pool via home UPF 10.45.0.0/16
+# MOCK policy note: Open5GS roaming HR/LBO support must be verified on installed version (limitations.md).
+# Production equivalent: home-routed PDU session per TS 23.501 roaming architectures.
+# Divergences: lab uses static SMF subnet swap rather than full SEPP/N32 policy exchange.
+smf:
+  subnet:
+    - addr: 10.45.0.0/16
+      dnn: internet
+  # N9/home UPF addressing via IPX SBI proxy — see ipx/

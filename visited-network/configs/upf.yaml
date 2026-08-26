@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------------
+# PROVENANCE: adapted from URANSIM_Open5gs/private-5g
+# Adaptation date: 2026-08-21 | Lab: ntn-roaming-lab
+# ---------------------------------------------------------------------------
+
+logger:
+  file:
+    path: /var/log/open5gs/upf.log
+upf:
+  pfcp:
+    server:
+      - address: 10.10.2.13
+    client:
+      smf:
+        - address: 10.10.2.12
+  gtpu:
+    server:
+      - address: 10.10.2.13
+  subnet:
+    - addr: 10.46.0.1/16
+      dnn: internet
+      dev: ogstun
+  metrics:
+    server:
+      - address: 10.10.2.13
+        port: 9090

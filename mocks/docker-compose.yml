@@ -1,0 +1,28 @@
+services:
+  scef:
+    build: ./scef
+    ports: ["8000:8000"]
+    networks:
+      mocks-net:
+        ipv4_address: 10.10.6.10
+  sgd-smsc:
+    build: ./sgd-smsc
+    ports: ["8081:8081"]
+    networks:
+      mocks-net:
+        ipv4_address: 10.10.6.11
+  map-sri-sm:
+    build: ./map-sri-sm
+    networks:
+      mocks-net:
+        ipv4_address: 10.10.6.12
+  billing:
+    build: ./billing
+    networks:
+      mocks-net:
+        ipv4_address: 10.10.6.13
+
+networks:
+  mocks-net:
+    name: ntn-mocks-net
+    external: true

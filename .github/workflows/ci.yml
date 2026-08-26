@@ -1,0 +1,22 @@
+name: ntn-roaming-lab-ci
+on:
+  push:
+  pull_request:
+jobs:
+  unit:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -r requirements.txt
+      - run: make check-network
+      - run: make test-unit
+  # V17: hosted runners typically lack usable SCTP for Open5GS AMF.
+  # Full stack job is manual / self-hosted only.
+  stack-self-hosted:
+    if: false
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Enable on self-hosted runner with SCTP + Docker"

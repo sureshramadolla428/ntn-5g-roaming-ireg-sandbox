@@ -1,0 +1,1355 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "title": "\u25b6 OPEN CALL-FLOW LADDER",
+      "url": "http://127.0.0.1:8010/static/roaming-callflow.html?api=http://127.0.0.1:8010/ladder/latest",
+      "type": "link",
+      "icon": "external link",
+      "targetBlank": true
+    },
+    {
+      "title": "Overview",
+      "url": "/d/ntn-roaming-overview",
+      "type": "dashboard"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "text",
+      "title": "Network domains",
+      "id": 1,
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "### 5G SA Roaming \u2014 domain map\n\n| | **VISITED (VPLMN)** | **HOME (HPLMN)** | **IPX** | **RAN** |\n|:---:|:---:|:---:|:---:|:---:|\n| NF | vAMF \u00b7 vSMF \u00b7 vUPF | AUSF \u00b7 UDM \u00b7 UDR \u00b7 PCF | SBI proxy | gNB \u00b7 UE |\n| Color | `#1565C0` blue | `#2E7D32` green | `#EF6C00` orange | `#6A1B9A` purple |\n"
+      }
+    },
+    {
+      "type": "text",
+      "title": "Signalling call-flow (open beside Grafana)",
+      "id": 2,
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Live sequence diagram\n\n**[Open call-flow ladder in new tab \u2197](http://127.0.0.1:8010/static/roaming-callflow.html?api=http://127.0.0.1:8010/ladder/latest)**\n\n- Auto-refreshes every 10s from `flow-exporter /ladder/latest`\n- **Step status (arrow border):** green = **observed** \u00b7 yellow = **partial_expected** \u00b7 red = **missing**\n- **Message role colors (when wired on Ubuntu):** \ud83d\udd34 red = **request** \u00b7 \ud83d\udfe2 green = **success response** \u00b7 \ud83d\udfe0 orange = **intermediate/policy** (PCF/NRF hops)\n- **B1 same-PLMN 001/01** \u00b7 **No SEPP/N32** \u00b7 TC-05 LBO MEASURED\n\n> Grafana cannot embed iframes safely \u2014 use the link above for the full Auth \u2192 Reg \u2192 PDU ladder.\n"
+      }
+    },
+    {
+      "type": "table",
+      "title": "Signalling steps (Auth \u2192 Reg \u2192 PDU)",
+      "id": 230,
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "roaming_flow_step_total > 0",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "mode": "columns"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "instance": true,
+              "job": true
+            },
+            "renameByName": {
+              "phase": "Phase",
+              "step": "Step",
+              "procedure": "Signalling message",
+              "result": "Status"
+            },
+            "indexByName": {
+              "Phase": 0,
+              "Step": 1,
+              "Signalling message": 2,
+              "Status": 3
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "Step"
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Status"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "observed": {
+                        "text": "OBSERVED",
+                        "color": "#43A047"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "partial_expected": {
+                        "text": "PARTIAL",
+                        "color": "#FBC02D"
+                      }
+                    }
+                  },
+                  {
+                    "type": "value",
+                    "options": {
+                      "missing": {
+                        "text": "MISSING",
+                        "color": "#E53935"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "type": "text",
+      "title": "Fault domain attribution",
+      "id": 3,
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## Fault domain attribution\n\nUse multi-point capture evidence before assigning blame. Implementation: `harness/trace-validation/fault_domain.py`.\n\n| Domain | When to attribute |\n|--------|-------------------|\n| **HOME** | Cause or failure response originates from HSS/UDM/AUSF/UDR (e.g. 5xx SBI from home NF, Diameter answer from HSS) |\n| **VISITED** | Local AMF/MME rejects before home is reached; attach succeeds through auth but fails in visited PDU path |\n| **IPX** | No response within Diameter/HTTP2 timer window, or transport failure at DRA/SBI proxy hop \u2014 **not SEPP/N32 (absent V14)** |\n| **RAN/UE** | Failure before NAS reaches core (RRC/NGAP/S1AP establishment) |\n| **NTN impairment** | Same cause codes as above but time-correlated with active netem profile on ran-net \u2014 UNVERIFIED timer correlation until measured |\n\n**Cause code references (definitions only \u2014 lab must trace MEASURED codes):**\n- 5GMM causes: 3GPP TS 24.501 Annex A \u2014 UNVERIFIED against live pcaps until TC run\n- EMM causes: 3GPP TS 24.301 Annex A \u2014 DEFERRED (no LTE MME)\n- Diameter Experimental-Result: TS 29.272 \u00a77.3 \u2014 see verification-register V1/V2\n- HTTP problem details: TS 29.500 \u00a75.2.7 \u2014 UNVERIFIED until SBI error pcaps parsed\n\n> **INDETERMINATE** when evidence is insufficient \u2014 never guess."
+      }
+    },
+    {
+      "type": "row",
+      "title": "Phase totals",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 4910,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "AUTH observed",
+      "id": 101,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"auth\",result=\"observed\"})",
+          "legendFormat": "AUTH observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FF9800"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FF9800",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 14,
+          "valueSize": 36
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "REG observed",
+      "id": 102,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"reg\",result=\"observed\"})",
+          "legendFormat": "REG observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 14,
+          "valueSize": 36
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "PDU observed",
+      "id": 103,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 35
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"pdu\",result=\"observed\"})",
+          "legendFormat": "PDU observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#1565C0"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1565C0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "text": {
+          "titleSize": 14,
+          "valueSize": 36
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Phase: AUTH \u2014 observed / partial / missing",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 2050,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "auth observed",
+      "id": 110,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"auth\",result=\"observed\"})",
+          "legendFormat": "auth observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#43A047"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#43A047",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "auth partial_expected",
+      "id": 111,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"auth\",result=\"partial_expected\"})",
+          "legendFormat": "auth partial_expected",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FBC02D"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FBC02D",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "auth missing",
+      "id": 112,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"auth\",result=\"missing\"})",
+          "legendFormat": "auth missing",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E53935"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Phase: REG \u2014 observed / partial / missing",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 44
+      },
+      "id": 4702,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "reg observed",
+      "id": 120,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 45
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"reg\",result=\"observed\"})",
+          "legendFormat": "reg observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#43A047"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#43A047",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "reg partial_expected",
+      "id": 121,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 45
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"reg\",result=\"partial_expected\"})",
+          "legendFormat": "reg partial_expected",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FBC02D"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FBC02D",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "reg missing",
+      "id": 122,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 45
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"reg\",result=\"missing\"})",
+          "legendFormat": "reg missing",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E53935"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Phase: PDU \u2014 observed / partial / missing",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 48
+      },
+      "id": 2435,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "pdu observed",
+      "id": 130,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 0,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"pdu\",result=\"observed\"})",
+          "legendFormat": "pdu observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#43A047"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#43A047",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "pdu partial_expected",
+      "id": 131,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 8,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"pdu\",result=\"partial_expected\"})",
+          "legendFormat": "pdu partial_expected",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FBC02D"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FBC02D",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "pdu missing",
+      "id": 132,
+      "gridPos": {
+        "h": 3,
+        "w": 8,
+        "x": 16,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{phase=\"pdu\",result=\"missing\"})",
+          "legendFormat": "pdu missing",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E53935"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "row",
+      "title": "Coverage",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 52
+      },
+      "id": 4934,
+      "panels": []
+    },
+    {
+      "type": "gauge",
+      "title": "Coverage ratio",
+      "id": 200,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 53
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "roaming_flow_coverage_ratio",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1.0,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 0.5
+              },
+              {
+                "color": "#43A047",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "observed / TC-expected (23 for TC-05). Exporter metric \u2014 no fallback zero."
+    },
+    {
+      "type": "stat",
+      "title": "Parser backend",
+      "id": 915,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 53
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(flow_exporter_parser_info == 1)",
+          "legendFormat": "Parser backend",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EF6C00"
+          },
+          "noValue": "PENDING",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#EF6C00",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Expected denominator",
+      "id": 916,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 53
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "roaming_flow_expected_steps_total{phase=\"all\"}",
+          "legendFormat": "Expected denominator",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#1565C0"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1565C0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "TC-aware expected steps; catalog total=28."
+    },
+    {
+      "type": "stat",
+      "title": "Steps in metrics",
+      "id": 917,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 53
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(roaming_flow_step_total)",
+          "legendFormat": "Steps in metrics",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Should equal catalog total 28 (one result label per step; cleared on reload)."
+    },
+    {
+      "type": "row",
+      "title": "3GPP procedure success rates (MEASURED ladder)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "id": 389,
+      "panels": []
+    },
+    {
+      "type": "gauge",
+      "title": "Registration Success Rate",
+      "id": 224,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 59
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"registration\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 24.501 \u00a75.5.1: Registration Accept (reg-7) / Registration Request (auth-1). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "gauge",
+      "title": "Auth Success Rate",
+      "id": 225,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 59
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"auth\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 33.501 \u00a76.1.3: Nausf confirm (auth-8) or SMC (auth-9) / Nausf create (auth-3) or 5G-AKA challenge (auth-6). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "gauge",
+      "title": "PDU Session Establishment Success Rate",
+      "id": 226,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 59
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"pdu\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 24.501 \u00a76.4.1: PDU Session Establishment Accept (pdu-11) / Request (pdu-1). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "barchart",
+      "title": "Signalling by procedure",
+      "id": 210,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 64
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (procedure, result) (roaming_flow_step_total)",
+          "legendFormat": "{{procedure}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0",
+          "custom": {
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "observed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#43A047",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "partial_expected"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FBC02D",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "missing"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#E53935",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "5g",
+    "roaming",
+    "ntn-lab"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "02 \u2014 5G Roaming Flow (v11 panel-fix)",
+  "uid": "ntn-5g-roaming-flow",
+  "version": 16,
+  "description": "Post-capture ladder from pcap_flow_exporter. VPLMN #1565C0, HPLMN #2E7D32, IPX #EF6C00, RAN #6A1B9A. Phase rows: Auth #FF9800, Reg #2E7D32, PDU #1565C0. Thresholds: green=observed, yellow=partial, red=missing. Procedure success rates from ladder step presence (not multi-trial GSMA KPIs)."
+}

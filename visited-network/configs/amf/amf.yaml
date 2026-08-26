@@ -1,0 +1,99 @@
+# SOURCE: URRANSIM_Open5gs/private-5g/configs/open5gs/amf.yaml schema
+# COPIED: 2026-08-24 — lab dual-home + roaming access_control. Original untouched.
+# docker_open5gs: amf_init.sh substitutes placeholders from visited-network/.env
+logger:
+  file:
+    path: /open5gs/install/var/log/open5gs/amf.log
+
+sbi:
+  server:
+    no_tls: true
+  client:
+    no_tls: true
+
+global:
+  max:
+    ue: MAX_NUM_UE
+
+amf:
+  sbi:
+    server:
+      # IPX first so outbound SBI to home AUSF/UDM uses 10.10.3.31 (home↔visited DROP).
+      - address: AMF_IPX
+        port: 7777
+      - address: AMF_IP
+        port: 7777
+    client:
+      # Open5GS MEASURED: only ONE nrf client URI (lib/sbi/context.c).
+      # Visited NRF (NRF_IP=10.10.2.10); home AUSF/UDM/UDR register to same NRF via IPX.
+      nrf:
+        - uri: http://NRF_IP:7777
+      scp:
+        - uri: http://SCP_IP:7777
+  ngap:
+    server:
+      - address: AMF_IP
+      - address: NGAP_IP
+  # access_control: allow-list of UE *home* PLMNs (Open5GS amf.yaml.in + docker_open5gs roaming/amf.yaml).
+  # Missing home PLMN → Registration reject cause #11 PLMN_NOT_ALLOWED (not cause #7).
+  access_control:
+    - plmn_id:
+        mcc: "MCC"
+        mnc: "MNC"
+    - plmn_id:
+        mcc: "HOME_MCC"
+        mnc: "HOME_MNC"
+  # relative_capacity: Open5GS configs/open5gs/amf.yaml.in (NG Setup RelativeAMFCapacity)
+  relative_capacity: 255
+  guami:
+    # Serving (visited) GUAMI — must match gNB broadcast PLMN for NG Setup
+    - plmn_id:
+        mcc: "MCC"
+        mnc: "MNC"
+      amf_id:
+        region: 2
+        set: 1
+    # Home PLMN GUAMI — Open5GS amf.yaml.in multi-guami example; matches SUPI home PLMN
+    # so amf_ue->guami is selected from home_plmn_id (gmm-handler.c)
+    - plmn_id:
+        mcc: "HOME_MCC"
+        mnc: "HOME_MNC"
+      amf_id:
+        region: 2
+        set: 1
+  # tai / plmn_support: visited 999/70 for gnb-visited; HOME 001/01 for B1 gnb-home-plmn-auth
+  # (UERANSIM cannot camp VPLMN while encoding HPLMN SUCI — see live-first-attach.md).
+  tai:
+    - plmn_id:
+        mcc: "MCC"
+        mnc: "MNC"
+      tac: TAC
+    - plmn_id:
+        mcc: "HOME_MCC"
+        mnc: "HOME_MNC"
+      tac: TAC
+  plmn_support:
+    - plmn_id:
+        mcc: "MCC"
+        mnc: "MNC"
+      s_nssai:
+        - sst: 1
+    - plmn_id:
+        mcc: "HOME_MCC"
+        mnc: "HOME_MNC"
+      s_nssai:
+        - sst: 1
+  security:
+    integrity_order: [NIA2, NIA1, NIA0]
+    ciphering_order: [NEA0, NEA1, NEA2]
+  network_name:
+    full: NETWORK_NAME
+    short: LABVS
+  amf_name: lab-visited-amf0
+  metrics:
+    server:
+      - address: AMF_IP
+        port: 9091
+  time:
+    t3512:
+      value: 540

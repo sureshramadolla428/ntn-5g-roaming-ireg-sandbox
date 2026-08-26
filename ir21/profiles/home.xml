@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- LAB-AUTHORED XML — NOT GSMA IR.21 -->
+<LabRoamingProfile>
+  <tadig>LABHM</tadig>
+  <mcc>001</mcc>
+  <mnc>01</mnc>
+  <realm>epc.mnc001.mcc001.3gppnetwork.org</realm>
+</LabRoamingProfile>

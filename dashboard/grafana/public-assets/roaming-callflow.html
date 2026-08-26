@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5G SA Roaming Call-Flow Ladder</title>
+<style>
+:root {
+  --bg:#0f1419; --surface:#1a222c; --ink:#e8eef4; --muted:#9aa7b5; --line:#2c3845;
+  --vplmn:#1565C0; --hplmn:#2E7D32; --ipx:#EF6C00; --ran:#6A1B9A;
+  --auth:#FF9800; --reg:#2E7D32; --pdu:#1565C0;
+  --observed:#43A047; --partial:#FBC02D; --missing:#E53935;
+  --mono: ui-monospace, Consolas, monospace;
+  --sans: "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:13px; }
+body.embed .chrome-only { display:none; }
+.wrap { padding:0.5rem 0.65rem 0.85rem; }
+.banner {
+  background:linear-gradient(135deg,#1e3340,#2a2418);
+  border:1px solid #3a6a7a; border-radius:6px; padding:0.5rem 0.65rem;
+  font-size:0.78rem; color:#c5dae6; margin-bottom:0.5rem;
+}
+.banner strong { color:#7ec8d4; }
+.meta { color:var(--muted); font-size:0.75rem; margin-bottom:0.45rem; }
+.progress { height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin:0.3rem 0 0.55rem; }
+.progress > i { display:block; height:100%; background:linear-gradient(90deg,var(--observed),#5ad48a); width:var(--pct,0%); transition:width 0.4s; }
+.ladder-shell { background:var(--surface); border:1px solid var(--line); border-radius:8px; overflow-x:auto; }
+.ladder { min-width:52rem; padding:0.35rem 0.3rem 0.65rem; }
+.actors {
+  display:grid; grid-template-columns:repeat(8,1fr);
+  border-bottom:2px solid var(--vplmn); position:sticky; top:0;
+  background:var(--surface); z-index:2; padding:0.2rem 0.15rem 0.35rem;
+}
+.actor { text-align:center; font-size:0.65rem; font-weight:700; border-left:1px dashed var(--line); padding:0.2rem 0.08rem; }
+.actor:first-child { border-left:none; }
+.actor small { display:block; color:var(--muted); font-weight:500; font-size:0.58rem; }
+.actor.v { color:var(--vplmn); }
+.actor.h { color:var(--hplmn); }
+.actor.i { color:var(--ipx); }
+.actor.r { color:var(--ran); }
+.phase-bar {
+  margin:0.45rem 0.3rem 0.2rem; padding:0.25rem 0.5rem; font-size:0.68rem;
+  font-weight:700; letter-spacing:0.04em; text-transform:uppercase; border-radius:3px;
+}
+.phase-bar.auth { background:#2a2418; color:var(--auth); border-left:3px solid var(--auth); }
+.phase-bar.reg { background:#163528; color:#81C784; border-left:3px solid var(--reg); }
+.phase-bar.pdu { background:#1a2840; color:#64B5F6; border-left:3px solid var(--pdu); }
+.msg { display:grid; grid-template-columns:repeat(8,1fr); align-items:center; min-height:1.75rem; padding:0.06rem 0.2rem; position:relative; }
+.msg::before {
+  content:""; position:absolute; inset:0 0.2rem; pointer-events:none; z-index:0;
+  background:repeating-linear-gradient(to right,transparent 0,transparent calc(12.5% - 1px),
+    rgba(80,95,110,0.4) calc(12.5% - 1px), rgba(80,95,110,0.4) 12.5%);
+}
+.arrow {
+  grid-column: var(--from) / span var(--span);
+  position:relative; z-index:1;
+  display:flex; align-items:center; gap:0.25rem; padding:0.15rem 0.3rem;
+  font-size:0.68rem; font-weight:600; border-radius:3px;
+  background:rgba(26,34,44,0.92); border:1px solid var(--line); color:var(--muted); opacity:0.5;
+}
+.arrow::after { content:"→"; margin-left:auto; font-weight:700; }
+.arrow.observed { opacity:1; color:#dff5e8; background:#163528; border-color:var(--observed); box-shadow:0 0 0 1px rgba(67,160,71,0.2); }
+.arrow.partial { opacity:1; color:#fff8e1; background:#3a3018; border-color:var(--partial); }
+.arrow.missing { opacity:0.85; color:#ffcdd2; background:#3a1818; border-color:var(--missing); }
+.arrow .id { font-family:var(--mono); font-size:0.58rem; color:var(--muted); }
+.arrow .ts { font-family:var(--mono); font-size:0.58rem; color:#8fd4a8; margin-left:auto; }
+.legend { display:flex; gap:0.65rem; flex-wrap:wrap; font-size:0.68rem; margin-top:0.45rem; color:var(--muted); }
+.legend span { display:inline-flex; align-items:center; gap:0.25rem; }
+.legend i { width:10px; height:10px; border-radius:2px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="banner">
+    <strong>Honesty:</strong> Post-capture ladder from <code>pcap_flow_exporter</code> / fixture on Windows.
+    <strong>B1 same-PLMN 001/01</strong> — not VPLMN 999/70. <strong>No SEPP/N32</strong>.
+    TC-05 LBO MEASURED; HR pdu-4…10 PARTIAL until TC-15.
+    Colors: VPLMN <span style="color:var(--vplmn)">#1565C0</span> · HPLMN <span style="color:var(--hplmn)">#2E7D32</span> · IPX <span style="color:var(--ipx)">#EF6C00</span> · RAN <span style="color:var(--ran)">#6A1B9A</span>
+  </div>
+  <div class="meta" id="meta">Loading ladder…</div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="ladder-shell"><div class="ladder" id="ladder"></div></div>
+  <div class="legend chrome-only">
+    <span><i style="background:var(--observed)"></i> observed</span>
+    <span><i style="background:var(--partial)"></i> partial_expected</span>
+    <span><i style="background:var(--missing)"></i> missing</span>
+    <span style="margin-left:0.5rem;color:#888">| message role (Ubuntu):</span>
+    <span><i style="background:#E53935"></i> request</span>
+    <span><i style="background:#43A047"></i> success response</span>
+    <span><i style="background:#EF6C00"></i> intermediate/policy</span>
+  </div>
+</div>
+<script>
+const ACTOR_MAP = {
+  "UE": {col:1, span:1, cls:"r"},
+  "gNB": {col:2, span:1, cls:"r"},
+  "visited-amf": {col:3, span:1, cls:"v"},
+  "visited-nrf": {col:3, span:1, cls:"v"},
+  "visited-smf": {col:4, span:1, cls:"v"},
+  "visited-upf": {col:5, span:1, cls:"v"},
+  "home-ausf": {col:6, span:1, cls:"h"},
+  "home-udm": {col:6, span:1, cls:"h"},
+  "home-udr": {col:7, span:1, cls:"h"},
+  "home-pcf": {col:7, span:1, cls:"h"},
+  "home-smf": {col:6, span:2, cls:"h"},
+  "home-upf": {col:7, span:1, cls:"h"},
+};
+const ACTORS = [
+  {name:"UE", sub:"ran-net", cls:"r"},
+  {name:"gNB", sub:"NGAP", cls:"r"},
+  {name:"vAMF", sub:"VPLMN", cls:"v"},
+  {name:"vSMF", sub:"visited", cls:"v"},
+  {name:"vUPF", sub:"LBO 10.46", cls:"v"},
+  {name:"hAUSF/UDM", sub:"HPLMN", cls:"h"},
+  {name:"hUDR/PCF", sub:"HPLMN", cls:"h"},
+  {name:"hSMF/UPF", sub:"HR PARTIAL", cls:"h"},
+];
+const PHASE_LABEL = {auth:"Flow 1 — Authentication", reg:"Flow 2 — Registration", pdu:"Flow 3/4 — PDU Session"};
+const params = new URLSearchParams(location.search);
+const embed = params.get("embed") === "1";
+if (embed) document.body.classList.add("embed");
+const rawApi = params.get("api");
+const API = rawApi ? decodeURIComponent(rawApi) : (location.origin + "/ladder/latest");
+
+function colSpan(src, dst) {
+  const s = ACTOR_MAP[src] || {col:1, span:1};
+  const d = ACTOR_MAP[dst] || {col:8, span:1};
+  const from = Math.min(s.col, d.col);
+  const to = Math.max(s.col + (s.span||1) - 1, d.col + (d.span||1) - 1);
+  return {from, span: Math.max(1, to - from + 1)};
+}
+
+function render(data) {
+  const steps = data.steps || [];
+  const observed = steps.filter(s => s.status === "observed").length;
+  const pct = Math.round(100 * observed / Math.max(1, steps.length));
+  document.getElementById("bar").style.setProperty("--pct", pct + "%");
+  document.getElementById("meta").innerHTML =
+    `<strong style="color:var(--observed)">${observed}</strong>/${steps.length} observed · ` +
+    `TC <code>${data.tc_id || "?"}</code> · parser <code>${data.parser || "?"}</code> · ` +
+    (data.capture_dir ? `pcap <code>${data.capture_dir}</code>` : "fixture/offline");
+
+  let html = '<div class="actors">' + ACTORS.map(a =>
+    `<div class="actor ${a.cls}">${a.name}<small>${a.sub}</small></div>`
+  ).join("") + "</div>";
+
+  let lastPhase = "";
+  for (const s of steps) {
+    if (s.phase !== lastPhase) {
+      html += `<div class="phase-bar ${s.phase}">${PHASE_LABEL[s.phase] || s.phase}</div>`;
+      lastPhase = s.phase;
+    }
+    const cs = colSpan(s.src, s.dst);
+    const cls = "arrow " + (s.status || "missing");
+    const ts = s.ts != null ? `<span class="ts">t=${s.ts.toFixed ? s.ts.toFixed(1) : s.ts}</span>` : "";
+    html += `<div class="msg"><div class="${cls}" style="--from:${cs.from};--span:${cs.span};">` +
+      `<span class="id">${s.id}</span> ${s.procedure} ${ts}</div></div>`;
+  }
+  document.getElementById("ladder").innerHTML = html;
+}
+
+async function load() {
+  const meta = document.getElementById("meta");
+  try {
+    const r = await fetch(API, { cache: "no-store", headers: { Accept: "application/json" } });
+    if (!r.ok) {
+      const hint = r.status === 404 ? " — is flow-exporter running?" : "";
+      throw new Error("HTTP " + r.status + " " + r.statusText + hint);
+    }
+    const data = await r.json();
+    if (!data || !Array.isArray(data.steps)) {
+      throw new Error("Invalid ladder JSON: expected { steps: [...] }");
+    }
+    render(data);
+  } catch (e) {
+    const msg = (e && e.message) ? e.message : String(e);
+    meta.innerHTML =
+      '<span style="color:var(--missing)">Failed to load ladder:</span> ' + msg +
+      '<br><small>API: <code>' + API + '</code> · try <code>curl ' + API + '</code></small>';
+    document.getElementById("ladder").innerHTML = "";
+  }
+}
+load();
+setInterval(load, 10000);
+</script>
+</body>
+</html>

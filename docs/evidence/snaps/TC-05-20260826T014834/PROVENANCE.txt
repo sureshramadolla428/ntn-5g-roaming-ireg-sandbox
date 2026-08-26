@@ -1,0 +1,4 @@
+﻿# SOURCE: Windows Wireshark screenshots of pcaps/LAB-IREG-001/20260826T014834/multi-point.pcap
+# COPIED: 2026-08-26 — user demo snaps for TC-05 LBO MEASURED run 014834. Original Cursor asset paths ephemeral; durable copies live here.
+# Filter used in Wireshark: nas-5gs || ngap || http2 || pfcp
+# Packet frame numbers in DEMO-SNAPS.md are MEASURED via tshark on the same pcap (screenshots may OCR-skew frame #s).

@@ -1,0 +1,106 @@
+# network-plan.yaml — single source of truth (Phase 0)
+# All compose files and IR.21 validators derive from this file.
+# Host binds: never 0.0.0.0 for core ports; host-exposed ports listed below only.
+
+lab:
+  name: ntn-roaming-lab
+  home_plmn: {mcc: "001", mnc: "01"}
+  visited_plmn: {mcc: "999", mnc: "70"}
+  # LAB PLACEHOLDERS — not GSMA-assigned TADIGs (V19)
+  tadig_home: LABHM
+  tadig_visited: LABVS
+  realms:
+    home: epc.mnc001.mcc001.3gppnetwork.org
+    visited: epc.mnc070.mcc999.3gppnetwork.org
+
+networks:
+  home-net:       {subnet: 10.10.1.0/24, gateway: 10.10.1.1}
+  visited-net:    {subnet: 10.10.2.0/24, gateway: 10.10.2.1}
+  ipx-net:        {subnet: 10.10.3.0/24, gateway: 10.10.3.1}
+  ran-net:        {subnet: 10.10.4.0/24, gateway: 10.10.4.1}
+  ss7-net:        {subnet: 10.10.5.0/24, gateway: 10.10.5.1}
+  mocks-net:      {subnet: 10.10.6.0/24, gateway: 10.10.6.1}
+  monitoring-net: {subnet: 10.10.7.0/24, gateway: 10.10.7.1}
+
+ue_pools:
+  home_routed: {subnet: 10.45.0.0/16, dnn: internet}
+  visited_lbo: {subnet: 10.46.0.0/16, dnn: internet}
+
+# NOTE: SEPP IPs reserved from master prompt but unused — Open5GS SEPP absent (V14).
+# Lab 5G roaming stand-in (no SEPP): dual-home home NRF/AUSF/UDM/UDR/PCF/SCP + visited NRF/AMF/SCP
+# onto ipx-net. Open5GS allows ONE sbi.client.nrf per NF — home AUSF/UDM/UDR/PCF register to
+# visited NRF via 10.10.3.30; visited AMF/SCP use visited NRF 10.10.2.10.
+
+hosts:
+  home:
+    nrf:      {ip: 10.10.1.10, port: 7777, alias: nrf.home.lab, legs: [10.10.3.20]}
+    ausf:     {ip: 10.10.1.11, port: 7777, alias: ausf.home.lab, legs: [10.10.3.21]}
+    udm:      {ip: 10.10.1.12, port: 7777, alias: udm.home.lab, legs: [10.10.3.22]}
+    udr:      {ip: 10.10.1.13, port: 7777, alias: udr.home.lab, legs: [10.10.3.24]}
+    hss:      {ip: 10.10.1.14, port: 3868, alias: hss.home.lab}  # Diameter
+    pcf:      {ip: 10.10.1.15, port: 7777, alias: pcf.home.lab, legs: [10.10.3.25]}
+    sepp_reserved: {ip: 10.10.1.16, note: "UNUSED — no Open5GS SEPP"}
+    mongo:    {ip: 10.10.1.20, port: 27017, alias: mongo.home.lab}
+    scp:      {ip: 10.10.1.21, port: 7777, alias: scp.home.lab, legs: [10.10.3.23]}
+    webui:    {ip: 10.10.1.22, port: 9999, alias: webui.home.lab}
+    smf_hr:   {ip: 10.10.1.23, port: 7777, alias: smf.home.lab}
+    upf_hr:   {ip: 10.10.1.24, note: "home-routed UPF for HR variant"}
+  visited:
+    nrf:      {ip: 10.10.2.10, port: 7777, alias: nrf.visited.lab, legs: [10.10.3.30]}
+    amf:      {ip: 10.10.2.11, port: 38412, proto: sctp, alias: amf.visited.lab, legs: [10.10.4.11, 10.10.3.31]}
+    smf:      {ip: 10.10.2.12, port: 7777, alias: smf.visited.lab}
+    upf:      {ip: 10.10.2.13, ports: {gtpu: 2152, pfcp: 8805}, alias: upf.visited.lab}
+    mme:      {ip: 10.10.2.14, port: 36412, proto: sctp, alias: mme.visited.lab}
+    sgwc:     {ip: 10.10.2.15, alias: sgwc.visited.lab}
+    sgwu:     {ip: 10.10.2.16, alias: sgwu.visited.lab}
+    sepp_reserved: {ip: 10.10.2.17, note: "UNUSED — no Open5GS SEPP"}
+    mongo:    {ip: 10.10.2.20, port: 27017, alias: mongo.visited.lab}
+    scp:      {ip: 10.10.2.21, port: 7777, alias: scp.visited.lab, legs: [10.10.3.32]}
+    webui:    {ip: 10.10.2.22, port: 9998, alias: webui.visited.lab}
+    ausf:     {ip: 10.10.2.23, port: 7777, note: "may proxy to home via IPX"}
+  ipx:
+    dra:        {ip: 10.10.3.10, legs: [10.10.1.30, 10.10.2.30], port: 3868, alias: dra.ipx.lab}
+    sbi_proxy:  {ip: 10.10.3.11, port: 8088, alias: sbi-proxy.ipx.lab}
+    fault_api:  {ip: 10.10.3.12, port: 8080, alias: fault.ipx.lab}
+  ran:
+    ueransim_gnb: {ip: 10.10.4.10, alias: gnb.ueransim.lab}
+    ueransim_ue_base: {ip: 10.10.4.21, alias: ue.ueransim.lab}
+    oai_gnb: {ip: 10.10.4.30, rfsim_port: 4043, alias: gnb.oai.lab}
+    oai_ue:  {ip: 10.10.4.31, alias: ue.oai.lab}
+  ss7:
+    stp: {ip: 10.10.5.10, port: 2905, proto: sctp, alias: stp.ss7.lab}
+    hlr: {ip: 10.10.5.11, alias: hlr.ss7.lab}
+    msc: {ip: 10.10.5.12, alias: msc.ss7.lab}
+  mocks:
+    scef:     {ip: 10.10.6.10, port: 8000, alias: scef.mocks.lab}
+    sgd_smsc: {ip: 10.10.6.11, port: 3868, alias: smsc.mocks.lab}
+    mock_as:  {ip: 10.10.6.12, alias: as.mocks.lab}
+    billing:  {ip: 10.10.6.13, alias: billing.mocks.lab}
+  monitoring:
+    prometheus: {ip: 10.10.7.10, port: 9090, alias: prometheus.mon.lab}
+    grafana:    {ip: 10.10.7.11, port: 3000, alias: grafana.mon.lab}
+    streamlit:  {ip: 10.10.7.12, port: 8501, alias: dashboard.mon.lab}
+    imsi_trace: {ip: 10.10.7.13, port: 8502, alias: imsi-trace.mon.lab}
+    flow_exporter: {ip: 10.10.7.14, port: 8010, alias: flow-exporter.mon.lab}
+
+host_published_ports:
+  grafana: 3000
+  prometheus: 9090
+  streamlit: 8501
+  scef_t8: 8000
+  ipx_fault_api: 8080
+  home_webui: 9999
+  visited_webui: 9998
+  imsi_trace_viewer: 8502
+  flow_exporter: 8010
+
+routing_policy:
+  home_visited_direct: blocked  # LAB-IREG-000
+  inter_plmn_via: ipx-net
+
+subscribers:
+  imsi_range: ["001010000000001", "001010000000020"]
+  # lab keys only — never real operator keys
+  k: "465B5CE8B199B49FAA5F0A2EE238A6BC"
+  opc: "E8ED289DEBA952E4283B54E88E6183CA"
+  amf: "8000"

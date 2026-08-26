@@ -1,0 +1,1245 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "title": "5G Roaming Flow",
+      "url": "/d/ntn-5g-roaming-flow",
+      "type": "dashboard"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "text",
+      "title": "NTN Roaming Lab Overview",
+      "id": 1,
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "## NTN Roaming Lab \u2014 monitoring overview\n\n**Domain colors:** HOME `#2E7D32` \u00b7 VISITED `#1565C0` \u00b7 IPX `#EF6C00` \u00b7 RAN `#6A1B9A`\n\n**Catalog:** 28 steps (auth=9, reg=7, pdu=12). **Active capture (from exporter tc_id):** expected denominator via `roaming_flow_expected_steps_total{phase=\"all\"}` (TC-05 reference = 23, excludes N/A HR-only pdu steps).\n\n**B1 same-PLMN camp (001/01)** \u2014 not production VPLMN 999/70. **SEPP/N32 absent.** Open **[02 \u2014 5G Roaming Flow](/d/ntn-5g-roaming-flow)** for post-capture ladder.\n\nThresholds: green=observed \u00b7 yellow=partial_expected \u00b7 red=missing"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "HOME (HPLMN)",
+      "id": 10,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(roaming_flow_step_total{result=\"observed\",domain=\"home\"}) or on() sum(roaming_flow_domain_observed_total{domain=\"home\"})",
+          "legendFormat": "HOME (HPLMN)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "\u2014",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Observed ladder steps with domain=home (UDM/AUSF/UDR/PCF path). Uses count(step_total{domain=}) else roaming_flow_domain_observed_total."
+    },
+    {
+      "type": "stat",
+      "title": "VISITED (VPLMN)",
+      "id": 16,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(roaming_flow_step_total{result=\"observed\",domain=\"visited\"}) or on() sum(roaming_flow_domain_observed_total{domain=\"visited\"})",
+          "legendFormat": "VISITED (VPLMN)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#1565C0"
+          },
+          "noValue": "\u2014",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1565C0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Observed ladder steps with domain=visited (vSMF/vUPF path)."
+    },
+    {
+      "type": "stat",
+      "title": "IPX (SBI relay)",
+      "id": 22,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(roaming_flow_step_total{result=\"observed\",domain=\"ipx\"}) or on() sum(roaming_flow_domain_observed_total{domain=\"ipx\"})",
+          "legendFormat": "IPX (SBI relay)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EF6C00"
+          },
+          "noValue": "\u2014",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#EF6C00",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Observed ladder steps with domain=ipx \u2014 SBI relay, not SEPP/N32."
+    },
+    {
+      "type": "stat",
+      "title": "RAN (NAS/NGAP)",
+      "id": 28,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(roaming_flow_step_total{result=\"observed\",domain=\"ran\"}) or on() sum(roaming_flow_domain_observed_total{domain=\"ran\"})",
+          "legendFormat": "RAN (NAS/NGAP)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#6A1B9A"
+          },
+          "noValue": "\u2014",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#6A1B9A",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Observed ladder steps with domain=ran (NAS/NGAP). True 0 means this capture has no ran-domain steps observed (often missing ran-net.pcap / DEFERRED-TO-UBUNTU), not a green KPI."
+    },
+    {
+      "type": "row",
+      "title": "Flow Completeness Debug View",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 1400,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Flow steps observed",
+      "id": 20,
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 0,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{result=\"observed\"})",
+          "legendFormat": "Flow steps observed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#43A047"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#43A047",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Numerator for coverage ratio. Active capture denominator from exporter tc_id via roaming_flow_expected_steps_total (TC-05 reference=23)."
+    },
+    {
+      "type": "stat",
+      "title": "Steps partial_expected",
+      "id": 21,
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 5,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{result=\"partial_expected\"})",
+          "legendFormat": "Steps partial_expected",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#FBC02D"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#FBC02D",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "PARTIAL/N/A catalog honesty \u2014 not counted as observed."
+    },
+    {
+      "type": "stat",
+      "title": "Steps missing",
+      "id": 22,
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 10,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_step_total{result=\"missing\"})",
+          "legendFormat": "Steps missing",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E53935"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "MEASURED steps not seen in pcap. observed+partial+missing=28 catalog steps."
+    },
+    {
+      "type": "stat",
+      "title": "Expected denominator",
+      "id": 23,
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 15,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "roaming_flow_expected_steps_total{phase=\"all\"}",
+          "legendFormat": "Expected denominator",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#1565C0"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1565C0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "TC-aware expected steps (excludes N/A). TC-05=23, catalog=28."
+    },
+    {
+      "type": "stat",
+      "title": "Catalog total",
+      "id": 24,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(roaming_flow_catalog_steps_total)",
+          "legendFormat": "Catalog total",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#EF6C00"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#EF6C00",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Full catalog per flow_catalog.py: auth=9 reg=7 pdu=12."
+    },
+    {
+      "type": "row",
+      "title": "Health & harness KPIs",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 3323,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Parser backend up",
+      "id": 28,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"flow-exporter\"}",
+          "legendFormat": "Parser backend up",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#1565C0"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1565C0",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "description": "Prometheus scrape target for pcap_flow_exporter :8010."
+    },
+    {
+      "type": "stat",
+      "title": "C8 pass rate",
+      "id": 30,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 6,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "harness_pass_rate",
+          "legendFormat": "C8 pass rate",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Harness passed",
+      "id": 31,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "harness_reports_passed_total",
+          "legendFormat": "Harness passed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Harness executed",
+      "id": 32,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "harness_reports_executed_total",
+          "legendFormat": "Harness executed",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Report files",
+      "id": 33,
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "harness_reports_files_total",
+          "legendFormat": "Report files",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#2E7D32"
+          },
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#2E7D32",
+                "value": null
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Observed / expected coverage",
+      "id": 40,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "roaming_flow_coverage_ratio",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 1.0,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 0.5
+              },
+              {
+                "color": "#43A047",
+                "value": 0.8
+              }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "observed / TC-expected (23 for TC-05). Metric from pcap_flow_exporter; no fallback zero."
+    },
+    {
+      "type": "gauge",
+      "title": "Auth phase coverage %",
+      "id": 41,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_flow_phase_coverage_ratio{phase=\"auth\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "observed / TC-expected \u00d7 100 from exporter. TC-05 denominators: auth=9, reg=7, pdu=7 (excludes N/A HR-only steps)."
+    },
+    {
+      "type": "gauge",
+      "title": "Reg phase coverage %",
+      "id": 43,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_flow_phase_coverage_ratio{phase=\"reg\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "observed / TC-expected \u00d7 100 from exporter. TC-05 denominators: auth=9, reg=7, pdu=7 (excludes N/A HR-only steps)."
+    },
+    {
+      "type": "gauge",
+      "title": "PDU phase coverage %",
+      "id": 42,
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 19
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_flow_phase_coverage_ratio{phase=\"pdu\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "observed / TC-expected \u00d7 100 from exporter. TC-05 denominators: auth=9, reg=7, pdu=7 (excludes N/A HR-only steps)."
+    },
+    {
+      "type": "row",
+      "title": "3GPP procedure success rates (MEASURED ladder)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 389,
+      "panels": []
+    },
+    {
+      "type": "gauge",
+      "title": "Registration Success Rate",
+      "id": 44,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"registration\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 24.501 \u00a75.5.1: Registration Accept (reg-7) / Registration Request (auth-1). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "gauge",
+      "title": "Auth Success Rate",
+      "id": 45,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"auth\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 33.501 \u00a76.1.3: Nausf confirm (auth-8) or SMC (auth-9) / Nausf create (auth-3) or 5G-AKA challenge (auth-6). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "gauge",
+      "title": "PDU Session Establishment Success Rate",
+      "id": 46,
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 25
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "100 * roaming_procedure_success_rate{procedure=\"pdu\"}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "noValue": "PENDING \u2014 run refresh-flow-dashboard",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 50
+              },
+              {
+                "color": "#43A047",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "showThresholdMarkers": true
+      },
+      "description": "3GPP TS 24.501 \u00a76.4.1: PDU Session Establishment Accept (pdu-11) / Request (pdu-1). MEASURED procedure completion from last capture ladder (1=Accept/success step seen / Request/attempt step seen). Not a multi-trial GSMA KPI. Binary presence \u2260 population statistics."
+    },
+    {
+      "type": "bargauge",
+      "title": "Steps by phase & result",
+      "id": 50,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (phase, result) (roaming_flow_step_total)",
+          "legendFormat": "{{phase}} {{result}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#E53935",
+                "value": null
+              },
+              {
+                "color": "#FBC02D",
+                "value": 1
+              },
+              {
+                "color": "#43A047",
+                "value": 3
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          }
+        }
+      },
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "5g",
+    "roaming",
+    "ntn-lab",
+    "overview"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timezone": "",
+  "title": "00 \u2014 Roaming Overview (v11 panel-fix)",
+  "uid": "ntn-roaming-overview",
+  "version": 11,
+  "description": "Colorful domain overview. HOME #2E7D32, VISITED #1565C0, IPX #EF6C00, RAN #6A1B9A. Harness C8 from harness/reports/*.json via flow-exporter. B1/no SEPP honesty. Procedure success rates from ladder step presence (not multi-trial GSMA KPIs)."
+}
