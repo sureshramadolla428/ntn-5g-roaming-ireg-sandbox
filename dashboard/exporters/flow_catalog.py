@@ -30,149 +30,153 @@ class FlowStep:
 # VPLMN #1565C0 / HPLMN #2E7D32 — documented in Grafana dashboard description.
 FLOW_STEPS: tuple[FlowStep, ...] = (
     # Flow 1 — Authentication
+    # RAN steps: ran-net.pcap is primary (host -i any N2 filter). multi-point.pcap is
+    # fallback when live-first-attach wrote only multi-point (014834) or bridge miss.
+    # Keep message_type filters specific; exporter retries broader ngap/nas-5gs and
+    # nr-ue.log when NAS is opaque after SMC (see pcap_flow_exporter).
     FlowStep(
         "auth-1", "auth", "Registration Request (SUCI)", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x41",
     ),
     FlowStep(
         "auth-2", "auth", "Initial UE Message", "gNB", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="ngap",
     ),
     FlowStep(
         "auth-3", "auth", "Nausf_UEAuthentication create", "visited-amf", "home-ausf", "ipx",
-        ("ipx-net.pcap",), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_method="POST", http2_path_contains="/nausf-auth/v1/ue-authentications",
     ),
     FlowStep(
         "auth-4", "auth", "Nudm_UEAuthentication_Get", "home-ausf", "home-udm", "ipx",
-        ("ipx-net.pcap",), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_path_contains="/nudm-ueau/v1/",
     ),
     FlowStep(
         "auth-5", "auth", "Nudr_DR (auth subscription)", "home-udm", "home-udr", "ipx",
-        ("ipx-net.pcap",), "MEASURED", "PARTIAL",
-        http2_path_contains="/nudr-dr/v2/",
+        ("ipx-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
+        http2_path_contains="/nudr-dr/",
     ),
     FlowStep(
         "auth-6", "auth", "5G-AKA challenge", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
-        tshark_display_filter="nas-5gs",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
+        tshark_display_filter="nas-5gs.mm.message_type == 0x56",
     ),
     FlowStep(
         "auth-7", "auth", "Authentication Response", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x57",
     ),
     FlowStep(
         "auth-8", "auth", "Nausf_UEAuthentication confirm", "visited-amf", "home-ausf", "ipx",
-        ("ipx-net.pcap",), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_path_contains="5g-aka-confirmation",
     ),
     FlowStep(
         "auth-9", "auth", "Security Mode Command/Complete", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
-        tshark_display_filter="nas-5gs || ngap",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
+        tshark_display_filter="nas-5gs.mm.message_type == 0x5d",
     ),
     # Flow 2 — Registration
     FlowStep(
         "reg-1", "reg", "NF discovery (NRF)", "visited-amf", "visited-nrf", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap"), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_path_contains="/nnrf-nfm/v1/nf-instances",
     ),
     FlowStep(
         "reg-2", "reg", "Nudm_UECM_Registration", "visited-amf", "home-udm", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap"), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_path_contains="/nudm-uecm/v1/",
     ),
     FlowStep(
         "reg-3", "reg", "Nudm_SDM_Get", "visited-amf", "home-udm", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap"), "MEASURED", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_path_contains="/nudm-sdm/v1/",
         http2_method="GET",
     ),
     FlowStep(
         "reg-4", "reg", "Nudm_SDM_Subscribe", "visited-amf", "home-udm", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap"), "PARTIAL", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "home-net.pcap", "multi-point.pcap"), "PARTIAL", "PARTIAL",
         http2_path_contains="sdm-subscriptions",
         http2_method="POST",
     ),
     FlowStep(
         "reg-5", "reg", "Nudr_DR (UE context)", "home-udm", "home-udr", "ipx",
-        ("ipx-net.pcap",), "MEASURED", "PARTIAL",
-        http2_path_contains="/nudr-dr/v2/",
+        ("ipx-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
+        http2_path_contains="/nudr-dr/",
     ),
     FlowStep(
         "reg-6", "reg", "Npcf_AMPolicyControl", "visited-amf", "home-pcf", "ipx",
-        ("ipx-net.pcap",), "PARTIAL", "PARTIAL",
+        ("ipx-net.pcap", "multi-point.pcap"), "PARTIAL", "PARTIAL",
         http2_path_contains="/npcf-am-policy-control/",
     ),
     FlowStep(
         "reg-7", "reg", "Registration Accept", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.mm.message_type == 0x42",
     ),
     # Flow 3 — PDU (1/2)
     FlowStep(
         "pdu-1", "pdu", "PDU Session Establishment Request", "UE", "visited-amf", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.sm.message_type == 0xc1",
     ),
     FlowStep(
         "pdu-2", "pdu", "Nsmf_PDUSession create (vSMF)", "visited-amf", "visited-smf", "visited",
-        ("visited-net.pcap",), "MEASURED", "PARTIAL",
+        ("visited-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         http2_method="POST", http2_path_contains="/nsmf-pdusession/v1/sm-contexts",
     ),
     FlowStep(
         "pdu-3", "pdu", "PFCP Session Establishment (vUPF)", "visited-smf", "visited-upf", "visited",
-        ("visited-net.pcap",), "MEASURED", "PARTIAL",
+        ("visited-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="pfcp",
     ),
     FlowStep(
         "pdu-4", "pdu", "Nsmf_PDUSession create (HR / vSMF→hSMF)", "visited-smf", "home-smf", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap"), "N/A", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "multi-point.pcap"), "N/A", "PARTIAL",
         http2_path_contains="/nsmf-pdusession/",
     ),
     FlowStep(
         "pdu-5", "pdu", "Nudm session (hSMF→UDM)", "home-smf", "home-udm", "home",
-        ("home-net.pcap", "ipx-net.pcap"), "N/A", "PARTIAL",
+        ("home-net.pcap", "ipx-net.pcap", "multi-point.pcap"), "N/A", "PARTIAL",
         http2_path_contains="/nudm-",
     ),
     FlowStep(
         "pdu-6", "pdu", "Nudr_DR (session)", "home-udm", "home-udr", "home",
-        ("home-net.pcap",), "N/A", "PARTIAL",
-        http2_path_contains="/nudr-dr/v2/",
+        ("home-net.pcap", "multi-point.pcap"), "N/A", "PARTIAL",
+        http2_path_contains="/nudr-dr/",
     ),
     # Flow 4 — PDU (2/2)
     FlowStep(
         "pdu-7", "pdu", "Npcf_SMPolicyControl create", "visited-smf", "home-pcf", "ipx",
-        ("ipx-net.pcap", "visited-net.pcap"), "PARTIAL", "PARTIAL",
+        ("ipx-net.pcap", "visited-net.pcap", "multi-point.pcap"), "PARTIAL", "PARTIAL",
         http2_path_contains="/npcf-smpolicycontrol/v1/sm-policies",
     ),
     FlowStep(
         "pdu-8", "pdu", "PFCP Session Establishment (hUPF)", "home-smf", "home-upf", "home",
-        ("home-net.pcap",), "N/A", "PARTIAL",
+        ("home-net.pcap", "multi-point.pcap"), "N/A", "PARTIAL",
         tshark_display_filter="pfcp",
     ),
     FlowStep(
         "pdu-9", "pdu", "PFCP Session Modification (vUPF)", "visited-smf", "visited-upf", "visited",
-        ("visited-net.pcap",), "MEASURED", "PARTIAL",
+        ("visited-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="pfcp",
     ),
     FlowStep(
         "pdu-10", "pdu", "N4/N9 HR coordination", "visited-smf", "home-smf", "visited",
-        ("visited-net.pcap", "home-net.pcap"), "N/A", "PARTIAL",
+        ("visited-net.pcap", "home-net.pcap", "multi-point.pcap"), "N/A", "PARTIAL",
         tshark_display_filter="pfcp || gtp",
     ),
     FlowStep(
         "pdu-11", "pdu", "PDU Session Establishment Accept", "visited-amf", "UE", "ran",
-        ("ran-net.pcap",), "MEASURED", "PARTIAL",
+        ("ran-net.pcap", "multi-point.pcap"), "MEASURED", "PARTIAL",
         tshark_display_filter="nas-5gs.sm.message_type == 0xc2",
     ),
     FlowStep(
         "pdu-12", "pdu", "User-plane check (LBO 10.46 / HR 10.45)", "UE", "visited-upf", "visited",
-        ("visited-net.pcap",), "MEASURED", "N/A",
+        ("visited-net.pcap", "multi-point.pcap", "ran-net.pcap"), "MEASURED", "N/A",
         tshark_display_filter="icmp",
     ),
 )

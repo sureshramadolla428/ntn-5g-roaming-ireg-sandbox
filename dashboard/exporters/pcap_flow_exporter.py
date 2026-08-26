@@ -730,6 +730,17 @@ def _run_tshark_fields(pcap: Path, display_filter: str) -> list[dict[str, str]]:
 
 
 def _run_tshark_count(pcap: Path, display_filter: str) -> tuple[bool, float | None]:
+    """Return whether any frame matches display_filter, plus first match epoch.
+
+    Do **not** pass tshark ``-c 1`` when reading capture files: for ``-r``,
+    ``-c`` limits packets read from the file *before* filtering, so an early
+    non-matching frame (e.g. ICMP ping on ran-net) makes NGAP/NAS steps miss
+    even when later frames match (MEASURED on host: ``tshark -Y ngap | wc -l``).
+
+    Implementation: run ``tshark -r … -Y FILTER -T fields -e frame.time_epoch``
+    with **no** ``-c``, take the first stdout epoch line, then kill the process
+    (cap via timeout). Never truncate the file read before the filter can match.
+    """
     cmd = [
         "tshark",
         "-r",
@@ -740,18 +751,62 @@ def _run_tshark_count(pcap: Path, display_filter: str) -> tuple[bool, float | No
         "fields",
         "-e",
         "frame.time_epoch",
-        "-c",
-        "1",
     ]
+    # Guard: never reintroduce packet-count truncation on file reads.
+    assert "-c" not in cmd, "tshark -c must not be used with -r (truncates before -Y)"
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=60)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except OSError:
+        return False, None
+    first_line = ""
+    try:
+        assert proc.stdout is not None
+        # First matching frame.time_epoch only — do not buffer the full dump.
+        # Timeout: readline can block on a hung tshark; join a reader thread.
+        box: list[str] = []
+
+        def _reader() -> None:
+            try:
+                box.append(proc.stdout.readline())  # type: ignore[union-attr]
+            except OSError:
+                box.append("")
+
+        reader = threading.Thread(target=_reader, daemon=True)
+        reader.start()
+        reader.join(timeout=120.0)
+        if reader.is_alive():
+            proc.kill()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+            return False, None
+        if box and box[0]:
+            first_line = box[0].strip()
+        if proc.poll() is None:
+            proc.kill()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass
+        else:
+            proc.wait(timeout=5)
     except (OSError, subprocess.TimeoutExpired):
+        if proc.poll() is None:
+            try:
+                proc.kill()
+            except OSError:
+                pass
         return False, None
-    ts_line = proc.stdout.strip().splitlines()
-    if not ts_line or not ts_line[0].strip():
+    if not first_line:
         return False, None
     try:
-        return True, float(ts_line[0].strip())
+        return True, float(first_line)
     except ValueError:
         return True, None
 
@@ -781,6 +836,38 @@ _LOG_PATTERNS: dict[str, tuple[str, ...]] = {
     "pdu-11": ("pdu session", "establishment accept"),
 }
 
+# Ordered broader tshark filters when primary message_type misses (opaque NAS).
+# Prefer nr-ue.log for step identity; avoid bare "ngap" except auth-2 (any NGAP).
+_TSHARK_FALLBACKS: dict[str, tuple[str, ...]] = {
+    "auth-1": ("ngap.procedureCode == 15",),  # InitialUEMessage
+    "auth-6": ("nas-5gs.mm.message_type == 0x56",),
+    "auth-7": ("nas-5gs.mm.message_type == 0x57",),
+    "auth-9": (
+        "nas-5gs.mm.message_type == 0x5e",  # SMC complete
+        "nas-5gs.mm.message_type == 0x5d",
+    ),
+    "reg-7": ("nas-5gs.mm.message_type == 0x42",),
+    "pdu-1": ("nas-5gs.sm.message_type == 0xc1",),
+    "pdu-11": ("nas-5gs.sm.message_type == 0xc2",),
+}
+
+# UERANSIM nr-ue.log needles (lowercase) — RAN steps when pcap decode is weak.
+_NR_UE_PATTERNS: dict[str, tuple[str, ...]] = {
+    "auth-1": ("sending initial registration",),
+    "auth-2": ("rrc connection established", "ue switches to state [cm-connected]"),
+    "auth-6": ("authentication request received",),
+    # Response often not printed; SMC after challenge implies auth response OK.
+    "auth-7": ("security mode command received",),
+    "auth-9": ("security mode command received",),
+    "reg-7": ("registration accept received", "mm-registered"),
+    "pdu-1": ("sending pdu session establishment request",),
+    "pdu-11": (
+        "pdu session establishment accept received",
+        "pdu session establishment is successful",
+    ),
+    "pdu-12": ("uesimtun0", "10.46.", "10.45."),
+}
+
 
 def parse_docker_logs(capture_dir: Path) -> dict[str, tuple[bool, float | None]]:
     """Supplement tshark with AMF/SMF/AUSF/UDM log greps from capture snapshot."""
@@ -801,6 +888,29 @@ def parse_docker_logs(capture_dir: Path) -> dict[str, tuple[bool, float | None]]
     return out
 
 
+def parse_nr_ue_log(capture_dir: Path) -> dict[str, tuple[bool, float | None]]:
+    """Supplement RAN steps from UERANSIM ``nr-ue.log`` when NAS/NGAP filters miss.
+
+    Patterns are MEASURED against UERANSIM v3.x attach logs (e.g. 014834 LBO).
+    auth-7 is inferred from SMC after challenge (response line often absent).
+    """
+    log_path = capture_dir / "nr-ue.log"
+    if not log_path.is_file():
+        return {}
+    try:
+        text = log_path.read_text(encoding="utf-8", errors="replace").lower()
+    except OSError:
+        return {}
+    out: dict[str, tuple[bool, float | None]] = {}
+    for step_id, needles in _NR_UE_PATTERNS.items():
+        if any(n in text for n in needles):
+            out[step_id] = (True, None)
+    # auth-7 requires challenge evidence; do not invent response alone.
+    if "auth-7" in out and "auth-6" not in out:
+        del out["auth-7"]
+    return out
+
+
 def _merge_observations(
     primary: dict[str, tuple[bool, float | None]],
     extra: dict[str, tuple[bool, float | None]],
@@ -810,6 +920,17 @@ def _merge_observations(
         if seen and not merged.get(step_id, (False, None))[0]:
             merged[step_id] = (True, ts)
     return merged
+
+
+def _filters_for_step(step: FlowStep) -> list[str]:
+    """Primary display filter then ordered broader fallbacks (opaque NAS)."""
+    filters: list[str] = []
+    if step.tshark_display_filter:
+        filters.append(step.tshark_display_filter)
+    for fb in _TSHARK_FALLBACKS.get(step.id, ()):
+        if fb not in filters:
+            filters.append(fb)
+    return filters
 
 
 def parse_with_tshark(capture_dir: Path) -> dict[str, tuple[bool, float | None]]:
@@ -834,9 +955,12 @@ def parse_with_tshark(capture_dir: Path) -> dict[str, tuple[bool, float | None]]
                 if observations[step.id][0]:
                     break
             elif step.tshark_display_filter:
-                seen, ts_val = _run_tshark_count(pcap, step.tshark_display_filter)
-                if seen:
-                    observations[step.id] = (True, ts_val)
+                for disp in _filters_for_step(step):
+                    seen, ts_val = _run_tshark_count(pcap, disp)
+                    if seen:
+                        observations[step.id] = (True, ts_val)
+                        break
+                if observations[step.id][0]:
                     break
     return observations
 
@@ -889,9 +1013,11 @@ def parse_capture_dir(capture_dir: Path, tc_id: str) -> tuple[list[LadderStep], 
     if _tshark_available():
         observations = parse_with_tshark(capture_dir)
         observations = _merge_observations(observations, parse_docker_logs(capture_dir))
+        observations = _merge_observations(observations, parse_nr_ue_log(capture_dir))
         return _build_ladder(observations, tc_id), "tshark"
     if _pyshark_available():
         observations = parse_with_pyshark(capture_dir)
+        observations = _merge_observations(observations, parse_nr_ue_log(capture_dir))
         return _build_ladder(observations, tc_id), "pyshark"
 
     if FIXTURE_PATH.is_file():

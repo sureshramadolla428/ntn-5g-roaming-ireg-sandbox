@@ -30,6 +30,16 @@
 
 **Executable today for interview evidence:** TC-05 golden → `run-ireg-tc.sh TC-11` → negatives TC-03/06/16 → mocks TC-07/09/12/13/20 → TC-21 netem (REFERENCE) → TC-15 HR attempt (not claimed until 10.45.x MEASURED).
 
+### JD five-TC one-shot (Ubuntu)
+
+```bash
+# After verify-live + provision-subscribers; needs sudo for capture + TUN:
+sudo -E bash scripts/run-jd-five-tcs.sh
+# Order: TC-05 → TC-11 → TC-04 → TC-07 → TC-21
+# Gates: LBO 10.46, PFCP warn if 0, domains.ran>0 when NGAP present after refresh
+# Snaps: KEEP_FLOW_METRICS=1; one PCAP_DIR timestamp per pack (see docs/evidence/snaps/)
+```
+
 ---
 
 ## Already MEASURED on Ubuntu (do not re-claim as new)

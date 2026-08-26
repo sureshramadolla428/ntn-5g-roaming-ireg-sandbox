@@ -68,10 +68,28 @@ sg docker -c 'cd ~/ntn-roaming-lab && make up-ss7'   # Osmocom — UNVERIFIED ru
 
 ### 2.1 Start capture
 
+**Must be root** (`CAP_NET_RAW`). `sg docker` alone is not enough — that caused
+`014710` / `030211` / `031413` empty `ran-net.pcap` (`sudo: a password is required`)
+while visited/ipx bridges still showed PFCP → Grafana `domains.ran=0`.
+
 ```bash
 cd ~/ntn-roaming-lab
-sg docker -c 'bash scripts/capture-ireg-tc.sh TC-05'
+sudo -E bash scripts/capture-ireg-tc.sh TC-05
 # Note the printed pcaps/TC-05/<timestamp>/ directory
+# VERIFY before attach: grep listening pcaps/TC-05/<ts>/ran-net.pcap.tcpdump.log
+```
+
+Prefer one-shot golden (sudo first, then capture + LBO recreate + attach):
+
+```bash
+sudo -E bash scripts/run-tc-05-golden.sh --with-capture
+```
+
+After syncing `dashboard/exporters/flow_catalog.py`, recreate exporter (catalog is
+bind-mounted; restart picks up multi-point RAN fallback):
+
+```bash
+sg docker -c 'cd ~/ntn-roaming-lab/dashboard && docker compose up -d --force-recreate flow-exporter'
 ```
 
 ### 2.2 Attach (keep UE for user-plane)

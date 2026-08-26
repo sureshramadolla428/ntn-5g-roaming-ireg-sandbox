@@ -27,15 +27,16 @@ Also capture: RAN/N2 (`ntn-ran-net`, gNB `10.10.4.10`, AMF `10.10.4.11`); IPX/SB
 
 ### 1. Start capture before attach
 
-Prefer bridge multi-file capture (includes N4 when `ntn-visited-net` exists):
+Prefer bridge multi-file capture **as root** (N2 via host `-i any` → `ran-net.pcap`; N4 on `ntn-visited-net`):
 
 ```bash
 cd ~/ntn-roaming-lab
-sg docker -c 'bash scripts/capture-ireg-tc.sh TC-05'
+sudo -E bash scripts/capture-ireg-tc.sh TC-05
 # Note printed pcaps/TC-05/<timestamp>/
+# VERIFY: ls -lah $PCAP_DIR/ran-net.pcap && ping -c 2 10.10.4.11 && ls -lah $PCAP_DIR/ran-net.pcap
 ```
 
-Or golden wrapper:
+Or golden wrapper (sudo first, then capture + LBO recreate + attach):
 
 ```bash
 sudo -E bash scripts/run-tc-05-golden.sh --with-capture
@@ -132,10 +133,21 @@ Run `014834`: do **not** claim PFCP from that `multi-point.pcap`. Next run: use 
 
 ## Script notes (private `scripts/` — gitignored in public tree)
 
-| Script | Behavior | Patch |
+| Script | Behavior | Patch (2026-08-26) |
 |--------|----------|-------|
-| `capture-ireg-tc.sh` | TC-05 dumps `visited-net.pcap` on `ntn-visited-net` — correct for N4 when bridges exist | Fallback `multi-point` host list must include `10.10.2.12` and `10.10.2.13` |
-| `live-first-attach.sh` | Wrote LAB-IREG-001 `multi-point.pcap` for 014834 | Was missing N4 hosts — add `10.10.2.12` `10.10.2.13` |
-| `run-tc-05-golden.sh` | `--with-capture` then LBO recreate + attach | Prefer over attach-only multi-point |
+| `capture-ireg-tc.sh` | **`ran-net.pcap` via `-i any` host 10.10.4.10/11** (UERANSIM is on host — bridge-only miss → RAN=0). Also `visited-net` / `ipx-net` bridges + always-on `multi-point` with N4 `.12`/`.13`. Fail-loud on sudo password errors. | Must start as **`sudo -E`** |
+| `live-first-attach.sh` | Uses active `pcaps/.capture-state/TC-05.env` when present; skips duplicate tcpdump; N4 hosts in multi-point | — |
+| `run-tc-05-golden.sh` | **sudo first**, then capture as root, then LBO recreate + attach | Fixes 014710-class empty pcaps |
+| `flow_catalog.py` | RAN steps also read `multi-point.pcap` | Exporter RAN>0 if only multi-point has NGAP |
+
+### RAN=0 root cause (025256 / 030211 / **031413**)
+
+1. gNB binds **host** `10.10.4.10` on `ntn-ran-net` bridge; AMF N2 = `10.10.4.11`.
+2. Bridge `tcpdump -i br-*` often misses **host↔container** NGAP while container↔container SBI/PFCP still show → `domains.ran=0`, visited/ipx > 0.
+3. Exporter only looked at `ran-net.pcap` for `domain=ran` (now also `multi-point.pcap`) — **image must be recreated** after sync (catalog is bind-mounted under `dashboard/docker-compose.yml`).
+4. Capture started without root → empty files (`sudo: a password is required`). `scripts/**` is gitignored — **rsync from Windows**, not `git pull`, updates capture scripts.
+5. Run `031413` still RAN=0 with same HEALTH as `030211` (observed=14, auth=1.0, pdu-3, all ran missing) → VM still on old capture path and/or old exporter; Windows has **no** `pcaps/TC-05/20260826T031413` yet.
+
+**Do not claim full MEASURED PASS for reg/PDU in Grafana until `domains.ran > 0` and NAS/NGAP frames exist.** PFCP (`pdu-3`) alone is not enough.
 
 Public repo documents the checklist; operational patches live in the private companion / local `scripts/` after sync.

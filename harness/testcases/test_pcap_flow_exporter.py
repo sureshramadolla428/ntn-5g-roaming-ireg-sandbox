@@ -18,10 +18,113 @@ import pcap_flow_exporter as exporter  # noqa: E402
 pytestmark = pytest.mark.tier1
 
 
-def test_flow_catalog_has_auth_reg_pdu_phases() -> None:
-    phases = {s.phase for s in flow_catalog.FLOW_STEPS}
-    assert phases == {"auth", "reg", "pdu"}
-    assert len(flow_catalog.FLOW_STEPS) == 28
+def test_ran_steps_accept_multi_point_fallback() -> None:
+    """RAN domain steps must also look at multi-point.pcap (host N2 / attach-only)."""
+    ran = [s for s in flow_catalog.FLOW_STEPS if s.domain == "ran"]
+    assert ran, "expected ran-domain steps"
+    for step in ran:
+        assert "ran-net.pcap" in step.pcap_files
+        assert "multi-point.pcap" in step.pcap_files
+
+
+def test_run_tshark_count_never_passes_dash_c(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """tshark -c truncates file reads before -Y; must not be in the argv.
+
+    Synthetic: ICMP-first then NGAP would miss with ``-c 1`` (MEASURED on
+    ran-net 032417: host ``tshark -Y ngap | wc -l`` = 13, exporter RAN=0).
+    """
+    captured: dict[str, list[str]] = {}
+
+    class _FakeStdout:
+        def readline(self) -> str:
+            return "1710000000.123456\n"
+
+    class _FakeProc:
+        stdout = _FakeStdout()
+
+        def poll(self) -> int:
+            return 0
+
+        def kill(self) -> None:
+            return None
+
+        def wait(self, timeout: float | None = None) -> int:
+            return 0
+
+    def _fake_popen(cmd: list[str], **kwargs: object) -> _FakeProc:
+        captured["cmd"] = list(cmd)
+        return _FakeProc()
+
+    monkeypatch.setattr(exporter.subprocess, "Popen", _fake_popen)
+    pcap = tmp_path / "ran-net.pcap"
+    pcap.write_bytes(b"\xd4\xc3\xb2\xa1")  # placeholder; tshark not invoked for real
+    seen, ts = exporter._run_tshark_count(pcap, "ngap")
+    assert seen is True
+    assert ts == pytest.approx(1710000000.123456)
+    assert "-c" not in captured["cmd"], (
+        "tshark -c must not truncate -r file reads before display filter"
+    )
+    assert captured["cmd"][:3] == ["tshark", "-r", str(pcap)]
+    assert "-Y" in captured["cmd"]
+    assert "ngap" in captured["cmd"]
+
+
+def test_parse_nr_ue_log_marks_ran_steps(tmp_path: Path) -> None:
+    """nr-ue.log fallback fills RAN steps when NAS message_type is opaque."""
+    (tmp_path / "nr-ue.log").write_text(
+        "\n".join(
+            [
+                "[nas] [debug] Sending Initial Registration",
+                "[rrc] [info] RRC connection established",
+                "[nas] [debug] Authentication Request received",
+                "[nas] [debug] Security Mode Command received",
+                "[nas] [debug] Registration accept received",
+                "[nas] [info] UE switches to state [MM-REGISTERED/NORMAL-SERVICE]",
+                "[nas] [debug] Sending PDU Session Establishment Request",
+                "[nas] [debug] PDU Session Establishment Accept received",
+                "[app] [info] TUN interface[uesimtun0, 10.46.0.2] is up.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    obs = exporter.parse_nr_ue_log(tmp_path)
+    for step_id in (
+        "auth-1",
+        "auth-2",
+        "auth-6",
+        "auth-7",
+        "auth-9",
+        "reg-7",
+        "pdu-1",
+        "pdu-11",
+        "pdu-12",
+    ):
+        assert obs.get(step_id, (False, None))[0] is True, step_id
+
+
+def test_parse_nr_ue_log_auth7_requires_challenge(tmp_path: Path) -> None:
+    (tmp_path / "nr-ue.log").write_text(
+        "[nas] [debug] Security Mode Command received\n", encoding="utf-8"
+    )
+    obs = exporter.parse_nr_ue_log(tmp_path)
+    assert obs.get("auth-9", (False, None))[0] is True
+    assert "auth-7" not in obs
+
+
+def test_filters_for_step_includes_initial_ue_fallback() -> None:
+    step = next(s for s in flow_catalog.FLOW_STEPS if s.id == "auth-1")
+    filters = exporter._filters_for_step(step)
+    assert filters[0] == "nas-5gs.mm.message_type == 0x41"
+    assert "ngap.procedureCode == 15" in filters
+
+
+def test_pfcp_steps_accept_multi_point_fallback() -> None:
+    for step_id in ("pdu-3", "pdu-9"):
+        step = next(s for s in flow_catalog.FLOW_STEPS if s.id == step_id)
+        assert "visited-net.pcap" in step.pcap_files
+        assert "multi-point.pcap" in step.pcap_files
 
 
 def test_expected_step_counts_tc05_excludes_na() -> None:
