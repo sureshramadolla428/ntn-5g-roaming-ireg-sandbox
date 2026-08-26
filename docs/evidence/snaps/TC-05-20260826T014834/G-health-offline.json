@@ -1,0 +1,39 @@
+{
+  "sync_run_id": "TC-05-20260826T014834",
+  "pcap_dir": "C:\\Users\\sures\\OneDrive\\Desktop\\MVNOs_and_MNOs\\ntn-roaming-lab\\pcaps\\LAB-IREG-001\\20260826T014834",
+  "backend": "tshark",
+  "observed": 18,
+  "expected_denominator": 23,
+  "domains": {
+    "ran": 8,
+    "ipx": 7,
+    "home": 2,
+    "visited": 1
+  },
+  "observed_steps": [
+    "auth-1",
+    "auth-2",
+    "auth-3",
+    "auth-4",
+    "auth-5",
+    "auth-6",
+    "auth-7",
+    "auth-8",
+    "auth-9",
+    "pdu-1",
+    "pdu-11",
+    "pdu-12",
+    "pdu-5",
+    "pdu-6",
+    "reg-2",
+    "reg-4",
+    "reg-5",
+    "reg-7"
+  ],
+  "honesty": {
+    "b1": "001/01",
+    "sepp": "ABSENT",
+    "lbo": "10.46"
+  },
+  "label": "OFFLINE-PARSE Windows tshark+nr-ue \u2014 not live Grafana PNG"
+}

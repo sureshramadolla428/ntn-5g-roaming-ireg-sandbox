@@ -1,5 +1,17 @@
 # Changelog
 
+## fix-exporter-ran-fallbacks + jd-five-tc + snap-sync
+
+- Exporter: confirm no `tshark -c` on file reads; add `parse_nr_ue_log` RAN
+  fallback; ordered `_TSHARK_FALLBACKS` for opaque NAS; `multi-point.pcap` on
+  SBI/PFCP steps; refresh script `chmod -R a+rX` before reload.
+- Unit tests: nr-ue log, filter fallbacks, PFCP multi-point, no `-c`.
+- Offline MEASURED parse of `014834`: `domains.ran=8` (was Grafana ran=0 class).
+- `scripts/run-jd-five-tcs.sh` ? TC-05?11?04?07?21 with LBO/PFCP/RAN gates.
+- Snap packs: `docs/evidence/snaps/TC-05-20260826T014834/SYNC.md` (W* synced;
+  G offline JSON; GUI PNG pending); `032417` NOT SYNCED until pcaps+refresh;
+  TC-11/04/07/21 pack status docs. Honesty: B1, no SEPP, LBO 10.46.
+
 ## fix-tshark-c1-file-truncate - RAN=0 on 032417 despite ngap=13
 
 - **Root cause:** `_run_tshark_count` used `tshark -r ... -Y FILTER -c 1`. For

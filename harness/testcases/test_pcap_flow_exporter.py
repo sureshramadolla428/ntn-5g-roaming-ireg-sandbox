@@ -71,6 +71,62 @@ def test_run_tshark_count_never_passes_dash_c(
     assert "ngap" in captured["cmd"]
 
 
+def test_parse_nr_ue_log_marks_ran_steps(tmp_path: Path) -> None:
+    """nr-ue.log fallback fills RAN steps when NAS message_type is opaque."""
+    (tmp_path / "nr-ue.log").write_text(
+        "\n".join(
+            [
+                "[nas] [debug] Sending Initial Registration",
+                "[rrc] [info] RRC connection established",
+                "[nas] [debug] Authentication Request received",
+                "[nas] [debug] Security Mode Command received",
+                "[nas] [debug] Registration accept received",
+                "[nas] [info] UE switches to state [MM-REGISTERED/NORMAL-SERVICE]",
+                "[nas] [debug] Sending PDU Session Establishment Request",
+                "[nas] [debug] PDU Session Establishment Accept received",
+                "[app] [info] TUN interface[uesimtun0, 10.46.0.2] is up.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    obs = exporter.parse_nr_ue_log(tmp_path)
+    for step_id in (
+        "auth-1",
+        "auth-2",
+        "auth-6",
+        "auth-7",
+        "auth-9",
+        "reg-7",
+        "pdu-1",
+        "pdu-11",
+        "pdu-12",
+    ):
+        assert obs.get(step_id, (False, None))[0] is True, step_id
+
+
+def test_parse_nr_ue_log_auth7_requires_challenge(tmp_path: Path) -> None:
+    (tmp_path / "nr-ue.log").write_text(
+        "[nas] [debug] Security Mode Command received\n", encoding="utf-8"
+    )
+    obs = exporter.parse_nr_ue_log(tmp_path)
+    assert obs.get("auth-9", (False, None))[0] is True
+    assert "auth-7" not in obs
+
+
+def test_filters_for_step_includes_initial_ue_fallback() -> None:
+    step = next(s for s in flow_catalog.FLOW_STEPS if s.id == "auth-1")
+    filters = exporter._filters_for_step(step)
+    assert filters[0] == "nas-5gs.mm.message_type == 0x41"
+    assert "ngap.procedureCode == 15" in filters
+
+
+def test_pfcp_steps_accept_multi_point_fallback() -> None:
+    for step_id in ("pdu-3", "pdu-9"):
+        step = next(s for s in flow_catalog.FLOW_STEPS if s.id == step_id)
+        assert "visited-net.pcap" in step.pcap_files
+        assert "multi-point.pcap" in step.pcap_files
+
+
 def test_expected_step_counts_tc05_excludes_na() -> None:
     """TC-05 denominator: auth=9 reg=7 pdu=7 (excludes 5 HR-only N/A pdu steps) → 23."""
     counts = flow_catalog.expected_step_counts("TC-05")
