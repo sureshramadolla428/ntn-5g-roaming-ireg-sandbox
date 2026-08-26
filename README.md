@@ -1,6 +1,6 @@
-# NTN Roaming Lab (IREG-style)
+# NTN 5G Roaming IREG Sandbox
 
-### Software-only 5G SA home / visited / IPX gate — Open5GS + UERANSIM, TC-05 LBO **MEASURED**, Grafana flow
+### Software-only 5G SA home / visited / IPX IREG practice lab — Open5GS + UERANSIM, TC-05 LBO **MEASURED**, Grafana flow
 
 ![3GPP 5G SA](https://img.shields.io/badge/3GPP-5G%20SA%20roaming%20lab-0033A0)
 ![Open5GS](https://img.shields.io/badge/Open5GS-home%20%2B%20visited-1F4E79)
@@ -29,7 +29,7 @@
 
 ## Overview
 
-This repository is a **GitHub-ready documentation, config, and evidence pack** for a **software-only IREG-style 5G SA roaming onboarding lab** aimed at NTN direct-to-device style gates:
+This repository is a **GitHub-ready documentation, config, and evidence pack** for a **software-only IREG practice lab** (5G SA roaming onboarding sandbox) aimed at NTN direct-to-device style gates:
 
 - **Home + visited Open5GS** cores on isolated Docker networks
 - **IPX stand-in** (DRA / SBI proxy / dual-home home NFs) — **not** a production SEPP/N32 interconnect
@@ -37,7 +37,9 @@ This repository is a **GitHub-ready documentation, config, and evidence pack** f
 - **Prometheus + Grafana** roaming overview and 5G call-flow ladder
 - **Interview TC matrix** (TC-01…TC-25) with honest READY / PARTIAL / MOCK / DEFERRED labels
 
-> **This is the public showcase — docs, safe configs, honesty notes, and demo media.** Operational bring-up / TC runner scripts live in a **private companion repo** (`ntn-roaming-lab-scripts`) and are **not** included here; available to reviewers **on request**. Do not paste secrets, real operator keys, or `.env` files into either repo.
+> **Lab practice sandbox — not a formal GSMA IREG operator sign-off.** Scope is B1 same-PLMN camp, no SEPP/N32, software-only. See [Honesty first](#honesty-first) and [`docs/limitations.md`](docs/limitations.md).
+
+> **This is the public showcase — docs, safe configs, honesty notes, and demo media.** Operational bring-up / TC runner scripts live in a **private companion repo** (`ntn-5g-roaming-ireg-sandbox-scripts`) and are **not** included here; available to reviewers **on request**. Do not paste secrets, real operator keys, or `.env` files into either repo.
 
 **Who it's for:**
 
@@ -176,7 +178,7 @@ No Grafana PNG exports are checked into this pack for run `014834`. Open the liv
 ## Project structure
 
 ```
-ntn-roaming-lab/
+ntn-5g-roaming-ireg-sandbox/
 ├── README.md                 # This showcase
 ├── LICENSE                   # All Rights Reserved
 ├── network-plan.yaml         # Single source of truth for lab addressing
@@ -197,7 +199,7 @@ ntn-roaming-lab/
 └── scripts/README.md         # Stub only — runners are private
 ```
 
-Sibling **private** repo: [`ntn-roaming-lab-scripts`](https://github.com/sureshramadolla428/ntn-roaming-lab-scripts) — TC runners, capture helpers, Grafana sync, VM bootstrap.
+Sibling **private** repo: [`ntn-5g-roaming-ireg-sandbox-scripts`](https://github.com/sureshramadolla428/ntn-5g-roaming-ireg-sandbox-scripts) — TC runners, capture helpers, Grafana sync, VM bootstrap.
 
 Open5GS / UERANSIM / OAI source trees are **not** vendored here. Runtime lives on the Ubuntu lab VM.
 
@@ -218,7 +220,7 @@ Open5GS / UERANSIM / OAI source trees are **not** vendored here. Runtime lives o
 
 ## How to run (Ubuntu)
 
-> Full bring-up and TC scripts ship with the **private companion** (`ntn-roaming-lab-scripts`, on request). This showcase contains **documentation, configs, and results**.
+> Full bring-up and TC scripts ship with the **private companion** (`ntn-5g-roaming-ireg-sandbox-scripts`, on request). This showcase contains **documentation, configs, and results**.
 
 ### Prerequisites
 
@@ -230,8 +232,8 @@ Open5GS / UERANSIM / OAI source trees are **not** vendored here. Runtime lives o
 
 ```bash
 # 1. Clone public pack
-git clone https://github.com/sureshramadolla428/ntn-roaming-lab.git
-cd ntn-roaming-lab
+git clone https://github.com/sureshramadolla428/ntn-5g-roaming-ireg-sandbox.git
+cd ntn-5g-roaming-ireg-sandbox
 
 # 2. Read scope
 less docs/limitations.md
@@ -285,4 +287,4 @@ Open5GS and UERANSIM remain the work of their respective authors; this pack vend
 
 ---
 
-*Personal research and education project. Software-only IREG-style 5G SA roaming lab — not a production interconnect, not affiliated with or endorsed by any operator or vendor.*
+*Personal research and education project. Software-only IREG practice sandbox for 5G SA roaming (B1 same-PLMN, no SEPP) — not a formal GSMA IREG operator sign-off, not a production interconnect, not affiliated with or endorsed by any operator or vendor.*

@@ -14,7 +14,7 @@ cd ~/ntn-roaming-lab
 ```bash
 mkdir -p ~/reference
 cp -a "/path/to/URRANSIM_Open5gs" ~/reference/
-cp -a "/path/to/5g-ntn-emulation-lab - Cursor" ~/reference/5g-ntn-emulation-lab-Cursor
+cp -a "/path/to/5g-ntn-emulation-lab" ~/reference/5g-ntn-emulation-lab
 cp -a "/path/to/3GPP_RAG_SA_LAB" ~/reference/   # optional RAG
 chmod -R a-w ~/reference
 ```

@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# PROVENANCE: copied from 5g-ntn-emulation-lab - Cursor/oai-config/...
+# PROVENANCE: copied from 5g-ntn-emulation-lab/oai-config/...
 # Adaptation date: 2026-08-21 | Lab: ntn-roaming-lab
 # Canonical OAI source on Ubuntu: openairinterface5g @ 38dc378 / 2026.w16
 # ---------------------------------------------------------------------------

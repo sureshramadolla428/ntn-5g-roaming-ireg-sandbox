@@ -6,8 +6,6 @@ Honest status after the Windows gap-close pass. No live attach or MEASURED pcaps
 
 | Area | Status |
 |------|--------|
-| `MASTER_PROMPT.md` | Present (~117 KB) |
-| `.cursor/rules/` accuracy, file-safety, execution | Present |
 | Phase 0 network-plan + check-network | Present |
 | Phase 1 home Open5GS NF YAMLs (001-01) + compose mounts | Present |
 | Phase 1 visited configs (999-70) | Present |

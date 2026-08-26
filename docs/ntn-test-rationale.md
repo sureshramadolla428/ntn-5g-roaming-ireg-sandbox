@@ -1,6 +1,6 @@
 # NTN test rationale
 
-Why NTN cases exist in an IREG-style gate:
+Why NTN cases exist in this IREG practice lab:
 
 - Direct-to-device changes timing (TA, Koffset) and path delay; registration/PDU timers must be validated under GEO/LEO RTT (B3/B4 REFERENCE).
 - Emergency messaging for D2D is SMS/NIDD-first (not IMS) in this lab.

@@ -72,8 +72,6 @@ test-ntn:
 
 signoff-check: check-network test-fast
 	@echo "=== Signoff checklist (scaffold) ==="
-	@test -f MASTER_PROMPT.md && echo "PASS: MASTER_PROMPT.md"
-	@test -d .cursor/rules && echo "PASS: .cursor/rules"
 	@test -f home-network/configs/nrf/nrf.yaml && test -f home-network/configs/nrf/nrf_init.sh && echo "PASS: home NF configs+init"
 	@test -f visited-network/configs/amf/amf.yaml && test -f visited-network/configs/amf/amf_init.sh && echo "PASS: visited AMF config+init"
 	@test -f ipx/freediameter/Dockerfile && echo "PASS: DRA Dockerfile"

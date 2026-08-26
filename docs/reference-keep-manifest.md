@@ -8,8 +8,8 @@ What this project **actually uses**. Everything else is optional for quarantine 
 |------|-----|------------------------|
 | **`ntn-roaming-lab/`** | Writable lab repo — all phases live here | N/A (this IS the project) |
 | **`URRANSIM_Open5gs/`** | Open5GS + UERANSIM compose/YAML, PLMN/subscriber patterns | Yes — `home-network/`, `visited-network/`, `ran/ueransim/` |
-| **`5g-ntn-emulation-lab - Cursor/oai-config/`** | NTN LEO/GEO confs, `CONFIG_CHANGES.md`, OAI pin `38dc378` | Yes — `ran/oai/configs/` |
-| **`5g-ntn-emulation-lab - Cursor/monitoring/`** | Prometheus/Grafana templates (Phase 11) | Partial — adapt as needed |
+| **`5g-ntn-emulation-lab/oai-config/`** | NTN LEO/GEO confs, `CONFIG_CHANGES.md`, OAI pin `38dc378` | Yes — `ran/oai/configs/` |
+| **`5g-ntn-emulation-lab/monitoring/`** | Prometheus/Grafana templates (Phase 11) | Partial — adapt as needed |
 
 ## NOT needed in reference (lab replaces or clones fresh)
 
@@ -25,7 +25,7 @@ What this project **actually uses**. Everything else is optional for quarantine 
 | Path | Approx size | Risk if removed |
 |------|-------------|-----------------|
 | **`3GPP_RAG_SA_LAB/`** (entire folder) | ~17 GB | Lose RAG/failtest portfolio; **lab does not require it** |
-| `5g-ntn-emulation-lab - Cursor/oai-config/evidence/` | portion of ~3 GB | Lose archived pcaps/logs; configs remain |
+| `5g-ntn-emulation-lab/oai-config/evidence/` | portion of ~3 GB | Lose archived pcaps/logs; configs remain |
 | Nested `3GPP_RAG_SA_LAB/**/5g-ntn-emulation-lab*` | duplicate | None if sibling NTN lab kept |
 | Nested `3GPP_RAG_SA_LAB/**/URRANSIM*` / `github-ueransim*` | duplicate | None if sibling kept |
 | `**/__pycache__`, `.venv`, `node_modules` | small–medium | Regenerable |
@@ -37,7 +37,7 @@ After cleanup, `~/reference/` can be:
 ```
 ~/reference/
   URRANSIM_Open5gs/
-  5g-ntn-emulation-lab/          # renamed from "5g-ntn-emulation-lab - Cursor"
+  5g-ntn-emulation-lab/          # renamed from "5g-ntn-emulation-lab"
 ```
 
 Optional: keep slim `3GPP_RAG_SA_LAB/3GPP_Spec_Test/` only if you still use RAG — otherwise quarantine whole folder.

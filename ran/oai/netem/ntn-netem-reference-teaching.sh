@@ -1,4 +1,4 @@
-# PROVENANCE: 5g-ntn-emulation-lab - Cursor/emulation/ntn-netem.sh
+# PROVENANCE: 5g-ntn-emulation-lab/emulation/ntn-netem.sh
 # WARNING: teaching values (leo 25ms) differ from corrected B4 (leo-600=13ms).
 # Prefer apply-netem.sh / profiles-b4.yaml for this lab.
 #!/usr/bin/env bash

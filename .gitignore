@@ -44,3 +44,15 @@ docs/evidence/_write_test.txt
 
 # Nested accidental tree copies
 pcaps/TC-05/home/
+
+# Local-only private scripts publish workspace
+_publish_scripts_private/
+# Local IDE / agent tooling (not part of public showcase)
+.cursor/
+agent-transcripts/
+*.canvas.tsx
+
+# AI handoff / prompt dumps (keep local only)
+files/MASTER_PROMPT*.md
+files/UBUNTU_*.md
+docs/plans/grafana-master-prompt-review.md

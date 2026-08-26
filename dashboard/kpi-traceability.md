@@ -35,7 +35,7 @@ Supporting gauges: `roaming_procedure_attempts_total`, `roaming_procedure_succes
 | Expected denominator | `roaming_flow_expected_steps_total{phase="all"}` | flow_catalog TC-aware (excludes N/A) | LAB-DEFINED |
 | Catalog total | `sum(roaming_flow_catalog_steps_total)` | 28 steps (auth=9 reg=7 pdu=12) | LAB-DEFINED |
 | Parser backend up | `up{job="flow-exporter"}` | Prometheus convention | LAB-DEFINED |
-| C8 pass rate | `harness_pass_rate` = passed/executed | Appendix C8 (`MASTER_PROMPT_v2.md`) | VERIFIED FORMULA |
+| C8 pass rate | `harness_pass_rate` = passed/executed | Appendix C8 (lab KPI appendix) | VERIFIED FORMULA |
 | Harness passed / executed / files | Gauges from `harness/reports/*.json` | Appendix C8 | VERIFIED FORMULA |
 | Observed / expected coverage | `roaming_flow_coverage_ratio{tc_id}` | observed / TC-expected (23 for TC-05) | LAB-DEFINED |
 | Auth / Reg / PDU phase coverage % | `100 * roaming_flow_phase_coverage_ratio{phase}` | observed / TC-expected per phase | LAB-DEFINED |

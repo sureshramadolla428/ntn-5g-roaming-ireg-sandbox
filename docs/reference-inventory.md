@@ -8,7 +8,7 @@ Nested duplicates under `3GPP_RAG_SA_LAB` are listed but **not** preferred as co
 | path | apparent project | version/commit | size (approx) | last modified | build arts | git root | dirty | runnable as-is | phases | verdict |
 |------|------------------|----------------|---------------|---------------|------------|----------|-------|----------------|--------|---------|
 | `3GPP_RAG_SA_LAB/` | Aggregator / RAG + nested copies of NTN & Open5GS labs | mixed / nested | ~17 GB | MEASURED present | y (nested) | unknown (nested) | unknown | partial (docs/evidence) | KEEP-REFERENCE for RAG only; prefer siblings for copy | KEEP-REFERENCE |
-| `5g-ntn-emulation-lab - Cursor/` | NTN emulation lab (OAI configs, monitoring, netem) | OAI configs cite `2026.w16` / `38dc378` | ~3.4 GB | MEASURED | y (evidence pcaps/logs) | unknown | unknown | configs/docs yes; full OAI needs Ubuntu clone | 3, 11, 14 | KEEP-CORE |
+| `5g-ntn-emulation-lab/` | NTN emulation lab (OAI configs, monitoring, netem) | OAI configs cite `2026.w16` / `38dc378` | ~3.4 GB | MEASURED | y (evidence pcaps/logs) | unknown | unknown | configs/docs yes; full OAI needs Ubuntu clone | 3, 11, 14 | KEEP-CORE |
 | `URRANSIM_Open5gs/` | Open5GS + UERANSIM private-5g pack | Open5GS via herlesupreeth images; PLMN 999/70 | ~15 MB | MEASURED | n (compose stubs) | unknown | unknown | compose reusable after IP/PLMN adapt | 1, 9 | KEEP-CORE |
 
 ## OAI trees discovered
@@ -16,7 +16,7 @@ Nested duplicates under `3GPP_RAG_SA_LAB` are listed but **not** preferred as co
 | location | NTN params in configs? | usable configs? | commit/branch evidence | notes |
 |----------|------------------------|-----------------|------------------------|-------|
 | Windows workspace | **No OAI source tree** (`openairinterface5g` / `cmake_targets` absent) | N/A | N/A | MEASURED |
-| `5g-ntn-emulation-lab - Cursor/oai-config/` | Yes — NTN LEO confs with `ntn_Config_r17`, SIB19 fields | Yes (configs + evidence) | Documented pin `38dc378` / tag `2026.w16` in `CONFIG_CHANGES.md` | Configs only |
+| `5g-ntn-emulation-lab/oai-config/` | Yes — NTN LEO confs with `ntn_Config_r17`, SIB19 fields | Yes (configs + evidence) | Documented pin `38dc378` / tag `2026.w16` in `CONFIG_CHANGES.md` | Configs only |
 | Nested under `3GPP_RAG_SA_LAB/.../oai-config/` | Duplicate of sibling | Yes | Same docs | Skip as copy source |
 | Nested under `URRANSIM_Open5gs/5g-ntn-emulation-lab/` | Partial docs | Partial | Docs only | Prefer sibling NTN lab |
 | Ubuntu VM `~/openairinterface5g` (historical) | Yes (per docs) | Yes when built | `38dc378` / `2026.w16` | SSH not used this session |
@@ -25,7 +25,7 @@ Nested duplicates under `3GPP_RAG_SA_LAB` are listed but **not** preferred as co
 
 **Canonical for Ubuntu:** fresh clone of `openairinterface5g` at commit **`38dc378`** / tag **`2026.w16`**.
 
-**Config source to copy into lab:** `5g-ntn-emulation-lab - Cursor\oai-config\` (sibling), especially evidence LEO confs and `CONFIG_CHANGES.md`.
+**Config source to copy into lab:** `5g-ntn-emulation-lab\oai-config\` (sibling), especially evidence LEO confs and `CONFIG_CHANGES.md`.
 
 **Rationale:** No OAI source on Windows; documented verified LEO run uses that pin; sibling `oai-config` has NTN keys (`cellSpecificKoffset_r17`, `ta-Common-r17`, positions/velocities) MEASURED in evidence confs. Do **not** merge trees.
 
@@ -41,7 +41,7 @@ Nested duplicates under `3GPP_RAG_SA_LAB` are listed but **not** preferred as co
 
 ## Monitoring
 
-- Prometheus/Grafana under `5g-ntn-emulation-lab - Cursor/monitoring/` — KEEP-CORE for Phase 11 adaptation.
+- Prometheus/Grafana under `5g-ntn-emulation-lab/monitoring/` — KEEP-CORE for Phase 11 adaptation.
 
 ## Quarantine
 

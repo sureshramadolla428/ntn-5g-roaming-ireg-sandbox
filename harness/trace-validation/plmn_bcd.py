@@ -1,4 +1,4 @@
-"""PLMN ID BCD encode/decode per TS 24.008 / E.212 (MASTER_PROMPT Appendix C1).
+"""PLMN ID BCD encode/decode per TS 24.008 / E.212 (lab Appendix C1).
 
 PLMN ID, 3 octets, nibble-swapped BCD; 2-digit MNC uses filler 0xF:
   Octet1 = MCC2<<4 | MCC1

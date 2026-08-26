@@ -12,7 +12,7 @@ See **[`reference-keep-manifest.md`](reference-keep-manifest.md)**.
 Minimum:
 - `ntn-roaming-lab/` (writable lab)
 - `URRANSIM_Open5gs/` (Open5GS/UERANSIM configs)
-- `5g-ntn-emulation-lab - Cursor/oai-config/` + `monitoring/` (NTN + observability)
+- `5g-ntn-emulation-lab/oai-config/` + `monitoring/` (NTN + observability)
 
 ## Safe to quarantine (low risk)
 

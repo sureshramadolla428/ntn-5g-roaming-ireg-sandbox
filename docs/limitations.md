@@ -1,6 +1,6 @@
 # Limitations (above-the-fold credibility)
 
-**This lab does not prove production roaming readiness.** It is a software-only educational IREG-style gate.
+**This lab does not prove production roaming readiness.** It is a software-only **IREG practice sandbox** (B1 same-PLMN, no SEPP) — not a formal GSMA IREG operator sign-off.
 
 ## Hard limits
 

@@ -15,7 +15,7 @@ ubuntu = 22.04
 # Fill after: python --version; docker --version (if any)
 oai_source_in_workspace = false
 open5gs_reference_plmn = 999-70
-ntn_config_source = 5g-ntn-emulation-lab - Cursor/oai-config
+ntn_config_source = 5g-ntn-emulation-lab/oai-config
 
 [deferred-ubuntu]
 freediameter = apt-pin-on-install

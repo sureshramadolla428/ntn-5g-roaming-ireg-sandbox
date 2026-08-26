@@ -1,5 +1,5 @@
 # Adapted from 5g-ntn-emulation-lab monitoring/prometheus.yml — lab addresses
-# PROVENANCE: 5g-ntn-emulation-lab - Cursor/monitoring/prometheus.yml
+# PROVENANCE: 5g-ntn-emulation-lab/monitoring/prometheus.yml
 global:
   scrape_interval: 5s
   scrape_timeout: 4s
