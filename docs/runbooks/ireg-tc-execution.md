@@ -64,6 +64,8 @@ sg docker -c 'cd ~/ntn-roaming-lab && make up-ss7'   # Osmocom — UNVERIFIED ru
 
 ## 2. Golden path — TC-05 (5G SA B1) + capture
 
+**Full N2 + SBI + N4/PFCP checklist** (run `014834` had **0 PFCP** in multi-point): [`tc-05-full-capture-checklist.md`](tc-05-full-capture-checklist.md). Prefer `capture-ireg-tc.sh` bridges (`visited-net.pcap` on `ntn-visited-net`) or a multi-point filter that includes SMF/UPF `10.10.2.12`/`10.10.2.13`. Verify `tshark -Y pfcp` count **> 0** before claiming PFCP MEASURED.
+
 ### 2.1 Start capture
 
 ```bash

@@ -1,5 +1,14 @@
 # Changelog
 
+## tc05-pfcp-capture-checklist ? N4 evidence for next LBO run
+
+- Added `docs/runbooks/tc-05-full-capture-checklist.md` (ordered steps; N4 on
+  `ntn-visited-net` SMF `10.10.2.12` ? UPF `10.10.2.13` UDP/8805).
+- Linked from TC-05 `014834` LBO evidence + DEMO-SNAPS; **W9** PFCP snap marked
+  pending until next capture with `tshark -Y pfcp` count > 0.
+- Local/private scripts: `live-first-attach.sh` + `capture-ireg-tc.sh` multi-point
+  fallback now include N4 hosts (public tree gitignores `scripts/**`).
+
 ## rename-ireg-sandbox - public rename + branding scrub
 
 - GitHub public slug: `ntn-5g-roaming-ireg-sandbox` (display: NTN 5G Roaming IREG Sandbox).
